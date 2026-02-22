@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Клиенты | Moon Bank</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg: #f3f4f6;
+            --surface: #ffffff;
+            --primary: #4f46e5;
+            --text: #1f2937;
+            --gray: #9ca3af;
+            --red: #ef4444;
+            --green: #10b981;
+            --blue: #3b82f6;
+        }
+
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; }
+
+        /* --- SIDEBAR --- */
+        aside { width: 80px; background: var(--surface); display: flex; flex-direction: column; align-items: center; padding: 30px 0; box-shadow: 2px 0 10px rgba(0,0,0,0.05); z-index: 10; }
+        .logo { color: var(--primary); font-size: 24px; margin-bottom: 40px; }
+        .nav-item { color: var(--gray); font-size: 20px; margin-bottom: 30px; cursor: pointer; transition: 0.2s; width: 100%; text-align: center; }
+        .nav-item:hover, .nav-item.active { color: var(--primary); }
+        .nav-bottom { margin-top: auto; }
+        a { text-decoration: none; color: inherit; display: contents; } 
+
+        /* --- MAIN --- */
+        main { flex: 1; padding: 30px; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        h1 { margin: 0; font-size: 24px; color: var(--text); }
+        
+        .add-btn { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; gap: 10px; align-items: center; transition: 0.2s; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2); }
+        .add-btn:hover { background: #4338ca; transform: translateY(-2px); }
+
+        /* --- GRID --- */
+        .clients-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; overflow-y: auto; padding-bottom: 20px; padding-right: 5px; }
+        .clients-grid::-webkit-scrollbar { width: 6px; }
+        .clients-grid::-webkit-scrollbar-thumb { background-color: #d1d5db; border-radius: 3px; }
+
+        /* --- CARD --- */
+        .client-card {
+            background: var(--surface); border-radius: 16px; padding: 20px; position: relative;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: all 0.2s; cursor: pointer;
+            border: 1px solid transparent; overflow: hidden; user-select: none;
+        }
+        .client-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px rgba(0,0,0,0.1); border-color: #e5e7eb; }
+
+        .client-card.status-left { filter: grayscale(100%); opacity: 0.8; background: #e5e7eb; }
+        .client-card.status-frozen { border: 2px solid var(--blue); background: #eff6ff; }
+
+        .ribbon {
+            position: absolute; top: 15px; right: -25px; transform: rotate(45deg);
+            background: var(--red); color: white; font-size: 10px; font-weight: bold;
+            padding: 5px 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); pointer-events: none; display: none;
+        }
+        .ribbon-blue { background: var(--blue); }
+        .client-card.status-left .ribbon.r-left { display: block; }
+        .client-card.status-frozen .ribbon.r-frozen { display: block; }
+
+        .card-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .avatar { width: 60px; height: 60px; border-radius: 12px; background: #eee; object-fit: cover; pointer-events: none; }
+        .info h3 { margin: 0; font-size: 16px; color: var(--text); }
+        .info p { margin: 2px 0 0; font-size: 12px; color: var(--gray); font-family: monospace; }
+        
+        .card-note { 
+            font-size: 11px; color: #666; background: #f9f9f9; padding: 5px 8px; 
+            border-radius: 6px; margin-top: 5px; display: inline-block; max-width: 100%;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        .balance { font-size: 20px; font-weight: bold; color: var(--green); margin-top: 10px; }
+        .hint-text { font-size: 10px; color: #ccc; margin-top: 15px; text-align: center; }
+
+        /* --- MODALS --- */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 100; display: none; align-items: center; justify-content: center; }
+        .modal-box { background: white; width: 400px; padding: 30px; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: slideUp 0.3s; position: relative; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .modal-title { font-size: 20px; font-weight: bold; margin-bottom: 20px; color: var(--text); display: flex; justify-content: space-between; }
+        .close-icon { cursor: pointer; color: #ccc; transition: 0.2s; }
+        .close-icon:hover { color: var(--red); }
+
+        .input-group { margin-bottom: 15px; position: relative; }
+        .input-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+        .input-group input, .input-group textarea { width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; box-sizing: border-box; outline: none; font-family: inherit; resize: none; transition: 0.2s; }
+        .input-group input:focus, .input-group textarea:focus { border-color: var(--primary); }
+
+        /* --- ERROR ANIMATIONS & STYLES --- */
+        /* Анимация тряски */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+        
+        .input-error { 
+            border-color: var(--red) !important; 
+            animation: shake 0.4s ease-in-out;
+            background-color: #fef2f2;
+        }
+        
+        .error-hint {
+            color: var(--red);
+            font-size: 11px;
+            margin-top: 5px;
+            display: none; /* Скрыто по умолчанию */
+            animation: fadeIn 0.3s;
+        }
+        .input-error + .error-hint { display: block; } /* Показываем если есть ошибка */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+
+        /* Gender Selector */
+        .gender-selector { display: flex; gap: 10px; margin-bottom: 15px; }
+        .gender-option { 
+            flex: 1; padding: 10px; border: 2px solid #e5e7eb; border-radius: 10px; 
+            text-align: center; cursor: pointer; transition: 0.2s; color: var(--gray);
+        }
+        .gender-option:hover { border-color: var(--primary); color: var(--primary); }
+        .gender-option.selected { background: var(--primary); color: white; border-color: var(--primary); }
+        .gender-option i { font-size: 20px; margin-bottom: 5px; display: block; }
+
+        .btn-full { width: 100%; padding: 12px; border: none; background: var(--primary); color: white; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .btn-full:hover { background: #4338ca; }
+
+        /* --- ACTIONS MENU --- */
+        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .action-btn { 
+            padding: 15px; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; 
+            display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 13px; 
+            background: #f9fafb; color: var(--text); transition: 0.2s;
+        }
+        .action-btn:hover { background: #e5e7eb; transform: translateY(-2px); }
+        
+        .btn-delete { color: var(--red); background: #fef2f2; }
+        .btn-freeze { color: var(--blue); background: #eff6ff; }
+        .btn-left { color: #6b7280; background: #f3f4f6; }
+        .btn-active { color: var(--green); background: #ecfdf5; }
+        
+        .hidden-action { display: none !important; }
+
+        /* --- TOAST --- */
+        #toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: #333; color: white; padding: 12px 24px; border-radius: 30px;
+            font-size: 14px; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 2000;
+            display: flex; align-items: center; gap: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        #toast.show { opacity: 1; top: 40px; }
+    </style>
+</head>
+<body>
+
+    <aside>
+        <div class="logo"><i class="fas fa-moon"></i></div>
+        <a href="index.html"><div class="nav-item"><i class="fas fa-home"></i></div></a>
+        <div class="nav-item active"><i class="fas fa-users"></i></div>
+        <div class="nav-item nav-bottom"><i class="fas fa-cog"></i></div>
+    </aside>
+
+    <main>
+        <header>
+            <h1>База Клиентов</h1>
+            <button class="add-btn" onclick="openModal('createModal')"><i class="fas fa-plus"></i> Новый</button>
+        </header>
+
+        <div class="clients-grid" id="clientsGrid"></div>
+        <div class="hint-text">ПКМ или Свайп влево для меню • ЛКМ для входа</div>
+        
+        <div id="toast"><i class="fas fa-check-circle" style="color: #4ade80;"></i> <span id="toastMsg">Успешно</span></div>
+    </main>
+
+    <div class="modal-overlay" id="createModal">
+        <div class="modal-box">
+            <div class="modal-title">Новый клиент <i class="fas fa-times close-icon" onclick="closeModal('createModal')"></i></div>
+            
+            <label style="font-size:13px; font-weight:600; display:block; margin-bottom:8px;">Пол (Аватар)</label>
+            <div class="gender-selector">
+                <div class="gender-option selected" onclick="selectGender('male', this)" data-val="male">
+                    <i class="fas fa-mars"></i> Мужской
+                </div>
+                <div class="gender-option" onclick="selectGender('female', this)" data-val="female">
+                    <i class="fas fa-venus"></i> Женский
+                </div>
+            </div>
+            <input type="hidden" id="newGender" value="male">
+
+            <div class="input-group">
+                <label>Никнейм *</label>
+                <input type="text" id="newName" placeholder="Например: Phantom">
+                <div class="error-hint">Пожалуйста, введите никнейм!</div>
+            </div>
+            
+            <div class="input-group">
+                <label>Steam ID</label>
+                <input type="text" id="newSteam" placeholder="STEAM_0:1:...">
+            </div>
+
+            <div class="input-group">
+                <label>Заметка</label>
+                <textarea id="newNote" rows="2" placeholder="Например: Должен 5000..."></textarea>
+            </div>
+            <div class="input-group">
+                <label>Начальный баланс</label>
+                <input type="number" id="newBalance" value="0">
+            </div>
+            
+            <button class="btn-full" id="btnCreate">Создать</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-box">
+            <div class="modal-title">Редактирование <i class="fas fa-times close-icon" onclick="closeModal('editModal')"></i></div>
+            <input type="hidden" id="editId">
+            
+            <div class="input-group">
+                <label>Никнейм</label>
+                <input type="text" id="editName">
+                <div class="error-hint">Поле не может быть пустым</div>
+            </div>
+            
+            <div class="input-group">
+                <label>Steam ID</label>
+                <input type="text" id="editSteam">
+            </div>
+
+            <div class="input-group">
+                <label>Заметка</label>
+                <textarea id="editNote" rows="3"></textarea>
+            </div>
+            
+            <button class="btn-full" id="btnSaveEdit">Сохранить</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="actionsModal">
+        <div class="modal-box">
+            <div class="modal-title">
+                <span id="actionName">User</span>
+                <i class="fas fa-times close-icon" onclick="closeModal('actionsModal')"></i>
+            </div>
+            <input type="hidden" id="actionId">
+            <input type="hidden" id="currentStatus">
+
+            <div class="action-grid">
+                <button class="action-btn" onclick="openEditFromActions()">
+                    <i class="fas fa-edit"></i> Изменить
+                </button>
+                <button class="action-btn btn-freeze" id="btnFreeze" onclick="performAction('freeze')">
+                    <i class="fas fa-snowflake"></i> Заморозить
+                </button>
+                <button class="action-btn btn-active" id="btnUnfreeze" onclick="performAction('unfreeze')">
+                    <i class="fas fa-sun"></i> Разморозить
+                </button>
+                <button class="action-btn btn-left" id="btnDisconnect" onclick="performAction('left')">
+                    <i class="fas fa-door-open"></i> Отключить
+                </button>
+                <button class="action-btn btn-active" id="btnConnect" onclick="performAction('connect')">
+                    <i class="fas fa-wifi"></i> Подключить
+                </button>
+                <button class="action-btn btn-delete" onclick="askDelete()" style="grid-column: span 2;">
+                    <i class="fas fa-trash"></i> Удалить клиента
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBa3MKrLHcRPauIyzxgxfNpLUphmehJAkg",
+            authDomain: "moon-logistik.firebaseapp.com",
+            databaseURL: "https://moon-logistik-default-rtdb.firebaseio.com",
+            projectId: "moon-logistik",
+            storageBucket: "moon-logistik.firebasestorage.app",
+            messagingSenderId: "335239459996",
+            appId: "1:335239459996:web:98a3cd3508767cfde6a959",
+            measurementId: "G-N3GHR5KS7Q"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // --- HELPERS ---
+        window.openModal = (id) => {
+            document.getElementById(id).style.display = 'flex';
+            // Сброс ошибок при открытии
+            document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+        };
+        window.closeModal = (id) => document.getElementById(id).style.display = 'none';
+        
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // Функция валидации с анимацией
+        function validateInput(inputId) {
+            const input = document.getElementById(inputId);
+            if (!input.value.trim()) {
+                input.classList.add('input-error'); // Добавляем класс ошибки (красный + тряска)
+                // Убираем тряску через время, чтобы можно было трясти снова, но оставляем красный цвет
+                setTimeout(() => {
+                    input.style.animation = 'none';
+                    input.offsetHeight; /* trigger reflow */
+                    input.style.animation = null; 
+                }, 400);
+                
+                // Если пользователь начал печатать, убираем ошибку
+                input.oninput = () => input.classList.remove('input-error');
+                return false;
+            }
+            return true;
+        }
+
+        window.selectGender = (val, el) => {
+            document.querySelectorAll('.gender-option').forEach(opt => opt.classList.remove('selected'));
+            el.classList.add('selected');
+            document.getElementById('newGender').value = val;
+        };
+
+        // --- RENDER ---
+        const grid = document.getElementById('clientsGrid');
+        
+        onValue(ref(db, 'users'), (snapshot) => {
+            grid.innerHTML = '';
+            const users = snapshot.val();
+            if(!users) return;
+
+            Object.keys(users).forEach(id => {
+                const user = users[id];
+                
+                let statusClass = '';
+                if (user.status === 'left') statusClass = 'status-left';
+                else if (user.status === 'frozen') statusClass = 'status-frozen';
+
+                // --- ЛОГИКА АВАТАРОК (Локальные файлы) ---
+                // Если пол male -> avatar1.png, иначе avatar2.png
+                // Предполагаем, что картинки лежат рядом с html файлом
+                const avatarSrc = (user.gender === 'female') ? 'avatar2.png' : 'avatar1.png';
+
+                const card = document.createElement('div');
+                card.className = `client-card ${statusClass}`;
+                
+                card.innerHTML = `
+                    <div class="ribbon r-left">ОТКЛЮЧЕН</div>
+                    <div class="ribbon ribbon-blue r-frozen">ЗАМОРОЖЕН</div>
+                    <div class="card-header">
+                        <img src="${avatarSrc}" class="avatar" alt="Ava">
+                        <div class="info">
+                            <h3>${user.name}</h3>
+                            <p>${user.steamId || ''}</p>
+                            ${user.note ? `<div class="card-note"><i class="far fa-sticky-note"></i> ${user.note}</div>` : ''}
+                        </div>
+                    </div>
+                    <div class="balance">${(user.balance || 0).toLocaleString()} ₸</div>
+                `;
+
+                card.addEventListener('click', () => window.location.href = `client-work.html?id=${id}`);
+                card.addEventListener('contextmenu', (e) => { e.preventDefault(); openActions(id, user); });
+                
+                let touchStartX = 0;
+                card.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
+                card.addEventListener('touchend', e => {
+                    if (touchStartX - e.changedTouches[0].screenX > 60) openActions(id, user);
+                }, {passive: true});
+
+                grid.appendChild(card);
+            });
+        });
+
+        // --- ACTIONS ---
+        window.openActions = (id, user) => {
+            document.getElementById('actionId').value = id;
+            document.getElementById('actionName').innerText = user.name;
+            window.currentUserData = user;
+
+            const btnFreeze = document.getElementById('btnFreeze');
+            const btnUnfreeze = document.getElementById('btnUnfreeze');
+            const btnDisconnect = document.getElementById('btnDisconnect');
+            const btnConnect = document.getElementById('btnConnect');
+
+            btnFreeze.classList.remove('hidden-action');
+            btnUnfreeze.classList.remove('hidden-action');
+            btnDisconnect.classList.remove('hidden-action');
+            btnConnect.classList.remove('hidden-action');
+
+            if (user.status === 'frozen') {
+                btnFreeze.classList.add('hidden-action');
+                btnDisconnect.classList.add('hidden-action');
+            } else if (user.status === 'left') {
+                btnDisconnect.classList.add('hidden-action');
+                btnFreeze.classList.add('hidden-action');
+            } else {
+                btnUnfreeze.classList.add('hidden-action');
+                btnConnect.classList.add('hidden-action');
+            }
+            openModal('actionsModal');
+        };
+
+        window.performAction = async (action) => {
+            const id = document.getElementById('actionId').value;
+            const userRef = ref(db, 'users/' + id);
+            try {
+                let newStatus = 'active';
+                if (action === 'freeze') newStatus = 'frozen';
+                if (action === 'left') newStatus = 'left';
+                
+                await update(userRef, { status: newStatus });
+                showToast('Статус обновлен');
+                closeModal('actionsModal');
+            } catch (e) { console.error(e); }
+        };
+
+        window.askDelete = async () => {
+            if(confirm('Удалить навсегда?')) {
+                const id = document.getElementById('actionId').value;
+                await remove(ref(db, 'users/' + id));
+                showToast('Клиент удален');
+                closeModal('actionsModal');
+            }
+        };
+
+        // --- CREATE ---
+        document.getElementById('btnCreate').addEventListener('click', async () => {
+            // ВАЛИДАЦИЯ: Проверяем поле имени
+            if (!validateInput('newName')) return; 
+
+            const name = document.getElementById('newName').value;
+            const steam = document.getElementById('newSteam').value;
+            const gender = document.getElementById('newGender').value;
+            const note = document.getElementById('newNote').value;
+            const balance = parseFloat(document.getElementById('newBalance').value) || 0;
+
+            const newId = name.toLowerCase().replace(/\s+/g, '_') + '_' + Math.floor(Math.random()*100);
+            
+            await set(ref(db, 'users/' + newId), {
+                name: name, steamId: steam, gender: gender, note: note, balance: balance,
+                status: 'active', createdAt: new Date().toISOString()
+            });
+
+            showToast('Клиент создан');
+            document.getElementById('newName').value = '';
+            document.getElementById('newSteam').value = '';
+            document.getElementById('newNote').value = '';
+            document.getElementById('newBalance').value = 0;
+            closeModal('createModal');
+        });
+
+        // --- EDIT ---
+        window.openEditFromActions = () => {
+            const user = window.currentUserData;
+            const id = document.getElementById('actionId').value;
+            
+            document.getElementById('editId').value = id;
+            document.getElementById('editName').value = user.name;
+            document.getElementById('editSteam').value = user.steamId || '';
+            document.getElementById('editNote').value = user.note || '';
+            
+            closeModal('actionsModal');
+            openModal('editModal');
+        };
+
+        document.getElementById('btnSaveEdit').addEventListener('click', async () => {
+            if (!validateInput('editName')) return;
+
+            const id = document.getElementById('editId').value;
+            const newName = document.getElementById('editName').value;
+            const newSteam = document.getElementById('editSteam').value;
+            const newNote = document.getElementById('editNote').value;
+
+            await update(ref(db, 'users/' + id), {
+                name: newName, steamId: newSteam, note: newNote
+            });
+
+            showToast('Изменения сохранены');
+            closeModal('editModal');
+        });
+    </script>
+</body>
+</html>

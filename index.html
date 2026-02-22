@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Главная | Moon Bank</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg: #f3f4f6;
+            --surface: #ffffff;
+            --primary: #4f46e5;
+            --text-dark: #1f2937;
+            --text-gray: #9ca3af;
+            --green: #10b981;
+            --red: #ef4444;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-dark);
+            height: 100vh;
+            display: flex;
+            overflow: hidden; 
+        }
+
+        /* --- SIDEBAR --- */
+        aside {
+            width: 80px;
+            background: var(--surface);
+            display: flex; flex-direction: column; align-items: center;
+            padding: 30px 0; margin: 20px 0 20px 20px;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            flex-shrink: 0;
+            z-index: 10;
+        }
+        .logo { color: var(--primary); font-size: 26px; margin-bottom: 50px; }
+        .nav-item {
+            color: var(--text-gray); font-size: 22px; margin-bottom: 35px; 
+            cursor: pointer; transition: 0.2s; position: relative; width: 100%; text-align: center;
+        }
+        .nav-item:hover, .nav-item.active { color: var(--primary); }
+        .nav-item.active::after {
+            content: ''; position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+            height: 30px; width: 4px; background: var(--primary); border-radius: 4px 0 0 4px;
+        }
+        .nav-bottom { margin-top: auto; }
+        a { text-decoration: none; color: inherit; display: contents; }
+
+        /* --- MAIN CONTENT --- */
+        main {
+            flex: 1;
+            padding: 20px;
+            display: grid;
+            grid-template-rows: 80px 1fr 220px; /* Верх, Центр, Низ */
+            gap: 20px;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+
+        /* --- TOP BAR --- */
+        .top-bar { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        
+        .search-box {
+            background: var(--surface); border-radius: 16px; display: flex; align-items: center; padding: 0 25px;
+            box-shadow: var(--shadow);
+        }
+        .search-box i { color: #9ca3af; }
+        .search-box input { border: none; outline: none; width: 100%; font-size: 16px; margin-left: 15px; background: transparent; }
+
+        .income-card {
+            background: var(--surface); border-radius: 16px; padding: 0 25px;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: var(--shadow); border-left: 6px solid var(--green);
+        }
+        .income-text h4 { margin: 0; color: var(--text-gray); font-size: 13px; text-transform: uppercase; }
+        .income-text span { font-size: 28px; font-weight: 700; }
+
+        /* --- MIDDLE SECTION --- */
+        .middle-section { display: grid; grid-template-columns: 3fr 1fr; gap: 20px; min-height: 0; }
+
+        /* History */
+        .history-panel {
+            background: var(--surface); border-radius: 16px; padding: 25px;
+            box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column;
+        }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .panel-header h3 { margin: 0; font-size: 18px; font-weight: 600; }
+        
+        .history-list { overflow-y: auto; flex: 1; padding-right: 5px; }
+        .history-list::-webkit-scrollbar { width: 6px; }
+        .history-list::-webkit-scrollbar-thumb { background-color: #e5e7eb; border-radius: 3px; }
+
+        .history-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 0; border-bottom: 1px solid #f3f4f6;
+        }
+        .h-icon { 
+            width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            margin-right: 15px; font-size: 18px; flex-shrink: 0;
+        }
+        .h-icon.dep { background: #d1fae5; color: var(--green); }
+        .h-icon.cred { background: #fee2e2; color: var(--red); }
+        
+        .h-info h5 { margin: 0; font-size: 15px; }
+        .h-info p { margin: 4px 0 0; font-size: 13px; color: var(--text-gray); }
+        .h-amount { font-weight: 700; font-size: 16px; }
+
+        /* Actions */
+        .actions-grid { display: flex; flex-direction: column; gap: 15px; }
+        .action-card {
+            flex: 1; border-radius: 16px; padding: 25px; color: white; cursor: pointer;
+            display: flex; flex-direction: column; justify-content: center; gap: 12px;
+            box-shadow: var(--shadow); transition: transform 0.2s; position: relative; overflow: hidden;
+        }
+        .action-card:hover { transform: translateY(-3px); }
+        .card-add { background: linear-gradient(135deg, #6c5ce7, #8e44ad); }
+        .card-list { background: linear-gradient(135deg, #00b894, #0984e3); }
+        .action-card i { font-size: 32px; opacity: 0.9; }
+        .action-card span { font-weight: 600; font-size: 18px; }
+
+        /* --- BOTTOM SECTION --- */
+        .bottom-section { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        
+        .bottom-card {
+            background: var(--surface); border-radius: 16px; padding: 20px 25px;
+            box-shadow: var(--shadow); display: flex; flex-direction: column;
+        }
+
+        .clients-scroll {
+            display: flex; gap: 20px; overflow-x: auto; padding: 15px 5px; flex: 1; align-items: center;
+        }
+        .mini-client { text-align: center; min-width: 70px; cursor: pointer; transition: transform 0.2s; }
+        .mini-client:hover { transform: translateY(-5px); }
+        .mini-client img { 
+            width: 55px; height: 55px; border-radius: 14px; background: #f3f4f6; object-fit: cover;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+        }
+        .mini-client span { 
+            display: block; font-size: 12px; margin-top: 8px; font-weight: 500;
+            max-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; 
+        }
+
+        /* Chart */
+        .chart-container { display: flex; align-items: flex-end; justify-content: space-between; height: 100%; padding-top: 10px; }
+        .bar-wrapper { width: 10%; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; }
+        .bar { 
+            width: 100%; background: #e5e7eb; border-radius: 6px; position: relative; 
+            transition: height 1s ease-out; min-height: 4px;
+        }
+        .bar.active { background: var(--primary); }
+        .day-label { margin-top: 8px; font-size: 11px; color: var(--text-gray); }
+
+        /* --- MODAL --- */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px);
+            z-index: 100; display: none; justify-content: center; align-items: center;
+        }
+        .modal-box { 
+            background: white; padding: 30px; border-radius: 20px; width: 380px; 
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: slideUp 0.3s;
+        }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .modal-title { font-size: 20px; font-weight: bold; margin-bottom: 20px; display: flex; justify-content: space-between; }
+        
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-dark); margin-bottom: 8px; }
+        .input-group input, .input-group textarea { 
+            width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; 
+            box-sizing: border-box; outline: none; transition: 0.2s; font-family: inherit; resize: none;
+        }
+        .input-group input:focus { border-color: var(--primary); }
+
+        /* Gender Selector */
+        .gender-selector { display: flex; gap: 10px; margin-bottom: 15px; }
+        .gender-option { 
+            flex: 1; padding: 10px; border: 2px solid #e5e7eb; border-radius: 10px; 
+            text-align: center; cursor: pointer; transition: 0.2s; color: var(--text-gray);
+        }
+        .gender-option.selected { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* Error Animation */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+        .input-error { border-color: var(--red) !important; animation: shake 0.4s ease-in-out; background-color: #fef2f2; }
+        .error-hint { color: var(--red); font-size: 11px; margin-top: 5px; display: none; }
+        .input-error + .error-hint { display: block; }
+
+        .btn-full { width: 100%; padding: 12px; border: none; background: var(--primary); color: white; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        
+        /* TOAST */
+        #toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: #333; color: white; padding: 12px 24px; border-radius: 30px;
+            font-size: 14px; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 2000;
+            display: flex; align-items: center; gap: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        #toast.show { opacity: 1; top: 40px; }
+
+    </style>
+</head>
+<body>
+
+    <aside>
+        <div class="logo"><i class="fas fa-moon"></i></div>
+        <div class="nav-item active"><i class="fas fa-home"></i></div>
+        <a href="clients.html"><div class="nav-item" title="Клиенты"><i class="fas fa-users"></i></div></a>
+        <div class="nav-item nav-bottom"><i class="fas fa-cog"></i></div>
+    </aside>
+
+    <main>
+        <div class="top-bar">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Поиск клиента...">
+            </div>
+            <div class="income-card">
+                <div class="income-text">
+                    <h4>Доход за сегодня</h4>
+                    <span id="dailyIncome">0 ₸</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="middle-section">
+            <div class="history-panel">
+                <div class="panel-header">
+                    <h3>История операций</h3>
+                    <i class="fas fa-history" style="color: #ccc;"></i>
+                </div>
+                <div class="history-list" id="historyContainer">
+                    <div style="text-align:center; padding: 40px; color: #999;">Загрузка...</div>
+                </div>
+            </div>
+
+            <div class="actions-grid">
+                <div class="action-card card-add" onclick="openModal()">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Быстрая добавка</span>
+                </div>
+                <a href="clients.html" class="action-card card-list">
+                    <i class="fas fa-list-ul"></i>
+                    <span>Список клиентов</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="bottom-section">
+            <div class="bottom-card">
+                <div class="panel-header"><h3>Недавние клиенты</h3></div>
+                <div class="clients-scroll" id="clientsList"></div>
+            </div>
+
+            <div class="bottom-card">
+                <div class="panel-header"><h3>Статистика (Неделя)</h3></div>
+                <div class="chart-container">
+                    <div class="bar-wrapper"><div class="bar" style="height: 30%;"></div><span class="day-label">Пн</span></div>
+                    <div class="bar-wrapper"><div class="bar" style="height: 50%;"></div><span class="day-label">Вт</span></div>
+                    <div class="bar-wrapper"><div class="bar" style="height: 20%;"></div><span class="day-label">Ср</span></div>
+                    <div class="bar-wrapper"><div class="bar active" style="height: 85%;"></div><span class="day-label">Чт</span></div>
+                    <div class="bar-wrapper"><div class="bar" style="height: 60%;"></div><span class="day-label">Пт</span></div>
+                    <div class="bar-wrapper"><div class="bar" style="height: 40%;"></div><span class="day-label">Сб</span></div>
+                    <div class="bar-wrapper"><div class="bar" style="height: 10%;"></div><span class="day-label">Вс</span></div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="toast"><i class="fas fa-check-circle" style="color: #4ade80;"></i> <span id="toastMsg">Успешно</span></div>
+    </main>
+
+    <div class="modal-overlay" id="addClientModal">
+        <div class="modal-box">
+            <div class="modal-title">
+                Новый клиент 
+                <i class="fas fa-times" style="cursor:pointer; color:#ccc;" onclick="closeModal()"></i>
+            </div>
+            
+            <label style="font-size:13px; font-weight:600; display:block; margin-bottom:8px;">Пол (Аватар)</label>
+            <div class="gender-selector">
+                <div class="gender-option selected" onclick="selectGender('male', this)" data-val="male">
+                    <i class="fas fa-mars"></i> Мужской
+                </div>
+                <div class="gender-option" onclick="selectGender('female', this)" data-val="female">
+                    <i class="fas fa-venus"></i> Женский
+                </div>
+            </div>
+            <input type="hidden" id="newGender" value="male">
+
+            <div class="input-group">
+                <label>Никнейм *</label>
+                <input type="text" id="newClientName" placeholder="Введите имя">
+                <div class="error-hint">Пожалуйста, введите никнейм!</div>
+            </div>
+            <div class="input-group">
+                <label>Steam ID</label>
+                <input type="text" id="newClientId" placeholder="STEAM_0:1:...">
+            </div>
+            <div class="input-group">
+                <label>Заметка</label>
+                <textarea id="newClientNote" rows="2"></textarea>
+            </div>
+            
+            <button class="btn-full" id="saveClientBtn">Создать</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, onValue, set, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBa3MKrLHcRPauIyzxgxfNpLUphmehJAkg",
+            authDomain: "moon-logistik.firebaseapp.com",
+            databaseURL: "https://moon-logistik-default-rtdb.firebaseio.com",
+            projectId: "moon-logistik",
+            storageBucket: "moon-logistik.firebasestorage.app",
+            messagingSenderId: "335239459996",
+            appId: "1:335239459996:web:98a3cd3508767cfde6a959",
+            measurementId: "G-N3GHR5KS7Q"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // --- HELPERS ---
+        window.openModal = () => {
+            document.getElementById('addClientModal').style.display = 'flex';
+            document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+        };
+        window.closeModal = () => document.getElementById('addClientModal').style.display = 'none';
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        window.selectGender = (val, el) => {
+            document.querySelectorAll('.gender-option').forEach(opt => opt.classList.remove('selected'));
+            el.classList.add('selected');
+            document.getElementById('newGender').value = val;
+        };
+
+        function validateInput(inputId) {
+            const input = document.getElementById(inputId);
+            if (!input.value.trim()) {
+                input.classList.add('input-error');
+                setTimeout(() => { input.style.animation = 'none'; input.offsetHeight; input.style.animation = null; }, 400);
+                input.oninput = () => input.classList.remove('input-error');
+                return false;
+            }
+            return true;
+        }
+
+        // --- 1. HISTORY & INCOME ---
+        const historyRef = query(ref(db, 'global_history'), limitToLast(20));
+        onValue(historyRef, (snapshot) => {
+            const container = document.getElementById('historyContainer');
+            container.innerHTML = '';
+            const data = snapshot.val();
+            let todayIncome = 0;
+            const todayStr = new Date().toISOString().slice(0, 10);
+
+            if (!data) {
+                container.innerHTML = '<div style="text-align:center; color:#ccc;">Нет операций</div>';
+                return;
+            }
+
+            const transactions = Object.values(data).reverse();
+            transactions.forEach(tx => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                const isDeposit = tx.type === 'deposit';
+                const date = tx.date ? tx.date.split('T')[1].slice(0, 5) : '--:--';
+
+                div.innerHTML = `
+                    <div class="h-icon ${isDeposit ? 'dep' : 'cred'}">
+                        <i class="fas ${isDeposit ? 'fa-arrow-down' : 'fa-arrow-up'}"></i>
+                    </div>
+                    <div class="h-info">
+                        <h5>${isDeposit ? 'Пополнение' : 'Выдача кредита'}</h5>
+                        <p>${tx.userName || 'Клиент'} • ${date}</p>
+                    </div>
+                    <div class="h-amount" style="color: ${isDeposit ? 'var(--green)' : 'var(--red)'}">
+                        ${isDeposit ? '+' : '-'}${parseFloat(tx.amount).toLocaleString()}
+                    </div>
+                `;
+                container.appendChild(div);
+
+                if (isDeposit && tx.date && tx.date.startsWith(todayStr)) {
+                    todayIncome += parseFloat(tx.amount);
+                }
+            });
+            document.getElementById('dailyIncome').innerText = todayIncome.toLocaleString() + ' ₸';
+        });
+
+        // --- 2. BOTTOM CLIENTS LIST (LOCAL AVATARS) ---
+        onValue(ref(db, 'users'), (snapshot) => {
+            const list = document.getElementById('clientsList');
+            list.innerHTML = '';
+            const users = snapshot.val();
+            if(users) {
+                // Берем последних 10 (или меньше)
+                Object.keys(users).reverse().slice(0, 10).forEach(id => {
+                    const user = users[id];
+                    // Логика аватарки: female -> avatar2.png, иначе avatar1.png
+                    const avatarSrc = (user.gender === 'female') ? 'avatar2.png' : 'avatar1.png';
+                    
+                    const el = document.createElement('div');
+                    el.className = 'mini-client';
+                    el.innerHTML = `
+                        <img src="${avatarSrc}" alt="ava">
+                        <span>${user.name}</span>
+                    `;
+                    el.onclick = () => window.location.href = `client-work.html?id=${id}`;
+                    list.appendChild(el);
+                });
+            }
+        });
+
+        // --- 3. CREATE CLIENT ---
+        document.getElementById('saveClientBtn').addEventListener('click', async () => {
+            if (!validateInput('newClientName')) return;
+
+            const name = document.getElementById('newClientName').value;
+            const steam = document.getElementById('newClientId').value; // Это поле для Steam ID
+            const gender = document.getElementById('newGender').value;
+            const note = document.getElementById('newClientNote').value;
+            
+            // Генерируем ID
+            const newId = name.toLowerCase().replace(/\s+/g, '_') + '_' + Math.floor(Math.random()*100);
+
+            try {
+                await set(ref(db, 'users/' + newId), {
+                    name: name,
+                    steamId: steam,
+                    gender: gender,
+                    note: note,
+                    balance: 0,
+                    status: 'active',
+                    createdAt: new Date().toISOString()
+                });
+                
+                showToast(`Клиент ${name} создан!`);
+                document.getElementById('newClientName').value = '';
+                document.getElementById('newClientId').value = '';
+                document.getElementById('newClientNote').value = '';
+                closeModal();
+            } catch (error) {
+                alert("Ошибка: " + error.message);
+            }
+        });
+
+        // Поиск (фильтрация на лету)
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const val = e.target.value.toLowerCase();
+            document.querySelectorAll('.mini-client').forEach(el => {
+                const name = el.innerText.toLowerCase();
+                el.style.opacity = name.includes(val) ? '1' : '0.2';
+            });
+        });
+    </script>
+</body>
+</html>

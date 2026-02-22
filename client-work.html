@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кабинет Клиента | Moon Bank</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f3f4f6; --surface: #ffffff; --primary: #4f46e5;
+            --text: #1f2937; --gray: #9ca3af; --red: #ef4444; --green: #10b981; --yellow: #f59e0b;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; min-height: 100vh; color: var(--text); }
+
+        .container { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; padding-bottom: 50px; }
+        
+        /* HEADER */
+        .nav-header { display: flex; gap: 10px; background: var(--surface); padding: 10px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .nav-btn { flex: 1; padding: 12px; border: none; background: transparent; cursor: pointer; font-size: 16px; font-weight: 600; color: var(--gray); border-radius: 12px; transition: 0.2s; }
+        .nav-btn.active { background: var(--primary); color: white; }
+        .nav-btn:hover:not(.active) { background: #f3f4f6; }
+
+        .back-link { cursor: pointer; color: var(--gray); font-size: 14px; margin-bottom: 5px; display: inline-flex; align-items: center; gap: 5px; }
+        .back-link:hover { color: var(--primary); }
+
+        .page-tab { display: none; animation: fadeIn 0.3s; }
+        .page-tab.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* USER INFO */
+        .user-card { background: var(--surface); border-radius: 20px; padding: 30px; text-align: center; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .avatar-big { width: 100px; height: 100px; border-radius: 25px; object-fit: cover; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .balance-display { font-size: 42px; font-weight: 800; color: var(--text); margin: 10px 0; letter-spacing: -1px; }
+        .balance-label { color: var(--gray); text-transform: uppercase; font-size: 12px; letter-spacing: 1px; font-weight: bold; }
+
+        .actions-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+        .action-tile { background: white; padding: 20px; border-radius: 16px; cursor: pointer; text-align: left; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: 0.2s; border: 1px solid transparent; display: flex; align-items: center; justify-content: space-between; }
+        .action-tile:hover { transform: translateY(-3px); border-color: var(--primary); }
+        .tile-icon { font-size: 24px; color: var(--primary); background: #e0e7ff; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 12px; }
+        .tile-text { font-weight: bold; font-size: 16px; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .stat-card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: relative; overflow: hidden; }
+        .stat-val { font-size: 24px; font-weight: bold; display: block; margin-bottom: 5px; }
+        .stat-name { font-size: 13px; color: var(--gray); }
+
+        /* PRODUCTS */
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin: 25px 0 15px; }
+        .section-title { font-size: 18px; font-weight: bold; color: var(--text); }
+        .add-btn { background: var(--primary); color: white; border: none; width: 35px; height: 35px; border-radius: 10px; cursor: pointer; transition: 0.2s; }
+        .add-btn:hover { background: #4338ca; transform: scale(1.1); }
+
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
+        .prod-card { background: var(--surface); border-radius: 16px; padding: 20px; position: relative; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: 0.2s; overflow: hidden; }
+        
+        .prod-card.deposit { border-bottom: 4px solid var(--green); }
+        .prod-card.credit { border-bottom: 4px solid var(--red); }
+        .prod-card.frozen { opacity: 0.6; filter: grayscale(1); background: #f9fafb; }
+        .prod-card.overdue { background: #e5e7eb; color: #6b7280; border-color: #9ca3af; }
+        
+        .ribbon { position: absolute; top: 15px; right: -30px; transform: rotate(45deg); color: white; font-size: 10px; font-weight: bold; padding: 5px 35px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); pointer-events: none; }
+        .ribbon-yellow { background: var(--yellow); }
+        .ribbon-blue { background: #3b82f6; }
+
+        .pc-top { display: flex; justify-content: space-between; margin-bottom: 15px; }
+        .pc-badge { font-size: 11px; padding: 4px 8px; border-radius: 6px; font-weight: bold; background: #f3f4f6; }
+        .pc-amount { font-size: 22px; font-weight: 800; margin-bottom: 5px; }
+        .pc-info { font-size: 12px; color: var(--gray); display: flex; justify-content: space-between; }
+        .timer-val { font-family: 'Courier New', monospace; font-weight: bold; letter-spacing: -0.5px; }
+
+        .complaint-btn { background: #fee2e2; color: var(--red); border: 1px solid #fecaca; width: 100%; padding: 8px; border-radius: 8px; margin-top: 15px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .complaint-btn:hover { background: #fecaca; }
+
+        /* CONTEXT MENU */
+        #contextMenu { position: fixed; background: white; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); width: 220px; display: none; z-index: 1000; overflow: hidden; padding: 5px; border: 1px solid #eee; }
+        .ctx-item { padding: 12px 15px; cursor: pointer; font-size: 13px; color: var(--text); border-radius: 8px; transition: 0.1s; display: flex; align-items: center; gap: 10px; }
+        .ctx-item:hover { background: #f3f4f6; color: var(--primary); }
+        .ctx-item.danger { color: var(--red); }
+        .ctx-item.danger:hover { background: #fef2f2; }
+
+        /* MODALS */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 200; display: none; align-items: center; justify-content: center; }
+        .modal-box { background: white; width: 380px; padding: 30px; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: popIn 0.3s; text-align: center; }
+        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .sys-title { font-size: 20px; font-weight: bold; margin-bottom: 10px; color: var(--text); }
+        .sys-msg { font-size: 14px; color: #666; margin-bottom: 25px; line-height: 1.4; }
+        .sys-btns { display: flex; gap: 10px; justify-content: center; }
+        .sys-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .sys-btn-primary { background: var(--primary); color: white; }
+        .sys-btn-danger { background: var(--red); color: white; }
+        .sys-btn-sec { background: #f3f4f6; color: var(--text); }
+
+        .inp-group { margin-bottom: 15px; text-align: left; }
+        .inp-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 8px; color: var(--text); }
+        .inp-group input { width: 100%; padding: 14px; border: 2px solid #f3f4f6; border-radius: 12px; outline: none; box-sizing: border-box; font-size: 16px; font-weight: 600; }
+        .btn-full { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 15px; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="back-link" onclick="window.location.href='clients.html'"><i class="fas fa-arrow-left"></i> К списку клиентов</div>
+
+    <div class="nav-header">
+        <button class="nav-btn active" onclick="switchMainTab('main')">Главная</button>
+        <button class="nav-btn" onclick="switchMainTab('products')">Продукты</button>
+    </div>
+
+    <div id="tab-main" class="page-tab active">
+        <div class="user-card">
+            <img src="" id="userAvatar" class="avatar-big">
+            <h2 id="userName" style="margin:0;">...</h2>
+            <div id="userSteam" style="color:var(--gray); font-size:13px; margin-bottom:10px;">ID: ...</div>
+            <div class="balance-label">Текущий баланс</div>
+            <div class="balance-display" id="userBalance">0 ₸</div>
+        </div>
+
+        <div class="actions-row">
+            <div class="action-tile" onclick="openMoneyModal('deposit')">
+                <div class="tile-icon"><i class="fas fa-arrow-down"></i></div>
+                <div class="tile-text">Пополнить<br><span style="font-size:12px; color:gray; font-weight:normal;">с комиссией</span></div>
+            </div>
+            <div class="action-tile" onclick="openMoneyModal('withdraw')">
+                <div class="tile-icon" style="color:var(--red); background:#fee2e2;"><i class="fas fa-arrow-up"></i></div>
+                <div class="tile-text">Снять<br><span style="font-size:12px; color:gray; font-weight:normal;">со счета</span></div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card" style="color:var(--primary);">
+                <span class="stat-val" id="stCountDep">0</span>
+                <span class="stat-name">Вкладов</span>
+            </div>
+            <div class="stat-card" style="color:var(--red);">
+                <span class="stat-val" id="stCountCred">0</span>
+                <span class="stat-name">Кредитов</span>
+            </div>
+            <div class="stat-card" style="color:var(--text);">
+                <span class="stat-val" id="stTotalDebt">0 ₸</span>
+                <span class="stat-name">Общий долг</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-products" class="page-tab">
+        <div class="section-header">
+            <span class="section-title">Вклады</span>
+            <button class="add-btn" onclick="openProductModal('deposit')"><i class="fas fa-plus"></i></button>
+        </div>
+        <div class="products-grid" id="depositsGrid"></div>
+
+        <div class="section-header">
+            <span class="section-title">Кредиты</span>
+            <button class="add-btn" onclick="checkAndOpenCredit()"><i class="fas fa-plus"></i></button>
+        </div>
+        <div class="products-grid" id="creditsGrid"></div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="alertModal">
+    <div class="modal-box">
+        <i class="fas fa-info-circle" style="font-size:40px; color:var(--primary); margin-bottom:15px;"></i>
+        <div class="sys-title" id="alertTitle">Внимание</div>
+        <div class="sys-msg" id="alertMsg">Сообщение</div>
+        <button class="sys-btn sys-btn-primary" style="width:100%" onclick="closeModal('alertModal')">Понятно</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="confirmModal">
+    <div class="modal-box">
+        <i class="fas fa-question-circle" style="font-size:40px; color:var(--yellow); margin-bottom:15px;"></i>
+        <div class="sys-title" id="confirmTitle">Вы уверены?</div>
+        <div class="sys-msg" id="confirmMsg">Действие необратимо</div>
+        <div class="sys-btns">
+            <button class="sys-btn sys-btn-sec" onclick="closeModal('confirmModal')">Отмена</button>
+            <button class="sys-btn sys-btn-danger" id="confirmYesBtn">Да, выполнить</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="promptModal">
+    <div class="modal-box" style="text-align:left">
+        <div class="sys-title" id="promptTitle" style="text-align:center">Ввод данных</div>
+        <div class="inp-group">
+            <label id="promptLabel">Введите значение</label>
+            <input type="text" id="promptInput">
+        </div>
+        <div class="sys-btns">
+            <button class="sys-btn sys-btn-sec" onclick="closeModal('promptModal')">Отмена</button>
+            <button class="sys-btn sys-btn-primary" id="promptOkBtn">ОК</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="moneyModal">
+    <div class="modal-box" style="text-align:left">
+        <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+            <h3 style="margin:0">Операция</h3>
+            <i class="fas fa-times" style="cursor:pointer" onclick="closeModal('moneyModal')"></i>
+        </div>
+        <input type="hidden" id="opType">
+
+        <div id="blockDeposit" style="display:none;">
+            <div class="inp-group">
+                <label>Сумма пополнения</label>
+                <input type="number" id="opAmountDep" placeholder="1000">
+            </div>
+            <div class="inp-group">
+                <label>Комиссия банка (%)</label>
+                <input type="number" id="opPercent" value="0" placeholder="0">
+            </div>
+            <button class="btn-full" onclick="performMoneyOp()">Пополнить</button>
+        </div>
+
+        <div id="blockWithdraw" style="display:none;">
+            <div class="inp-group">
+                <label>Сумма списания</label>
+                <input type="number" id="opAmountWith" placeholder="1000">
+            </div>
+            <button class="btn-full" style="background:var(--red);" onclick="performMoneyOp()">Списать</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="productModal">
+    <div class="modal-box" style="text-align:left">
+        <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+            <h3 style="margin:0" id="prodModalTitle">Новый продукт</h3>
+            <i class="fas fa-times" style="cursor:pointer" onclick="closeModal('productModal')"></i>
+        </div>
+        <input type="hidden" id="prodType">
+        
+        <div class="inp-group">
+            <label>Сумма</label>
+            <input type="number" id="prodAmount">
+        </div>
+        <div class="inp-group">
+            <label>Процентная ставка (%)</label>
+            <input type="number" id="prodRate" value="5">
+        </div>
+        <div class="inp-group" id="prodDurationBlock" style="display:none;">
+            <label>Срок кредита (минут)</label>
+            <input type="number" id="prodDuration" value="60">
+        </div>
+
+        <button class="btn-full" onclick="createProduct()">Создать</button>
+    </div>
+</div>
+
+<div id="contextMenu"></div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, onValue, set, update, push, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBa3MKrLHcRPauIyzxgxfNpLUphmehJAkg",
+        authDomain: "moon-logistik.firebaseapp.com",
+        databaseURL: "https://moon-logistik-default-rtdb.firebaseio.com",
+        projectId: "moon-logistik",
+        storageBucket: "moon-logistik.firebasestorage.app",
+        messagingSenderId: "335239459996",
+        appId: "1:335239459996:web:98a3cd3508767cfde6a959",
+        measurementId: "G-N3GHR5KS7Q"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = urlParams.get('id');
+    if(!userId) window.location.href = 'clients.html';
+
+    let currentUser = null;
+    let productsData = {};
+    let hasActiveCredit = false;
+
+    // --- ALERTS ---
+    window.showAlert = (msg, title = "Ошибка") => {
+        document.getElementById('alertTitle').innerText = title;
+        document.getElementById('alertMsg').innerText = msg;
+        document.getElementById('alertModal').style.display = 'flex';
+    };
+
+    window.showConfirm = (msg, callback) => {
+        document.getElementById('confirmMsg').innerText = msg;
+        const btn = document.getElementById('confirmYesBtn');
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        newBtn.addEventListener('click', () => { closeModal('confirmModal'); callback(); });
+        document.getElementById('confirmModal').style.display = 'flex';
+    };
+
+    window.showPrompt = (label, callback) => {
+        document.getElementById('promptLabel').innerText = label;
+        const inp = document.getElementById('promptInput');
+        inp.value = '';
+        const btn = document.getElementById('promptOkBtn');
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+
+        newBtn.addEventListener('click', () => {
+            const val = inp.value;
+            closeModal('promptModal');
+            callback(val);
+        });
+        document.getElementById('promptModal').style.display = 'flex';
+    };
+
+    // --- TABS ---
+    window.switchMainTab = (tabName) => {
+        document.querySelectorAll('.page-tab').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(`tab-${tabName}`).classList.add('active');
+        const btns = document.querySelectorAll('.nav-btn');
+        if(tabName === 'main') btns[0].classList.add('active'); else btns[1].classList.add('active');
+    };
+
+    // --- LOAD DATA ---
+    onValue(ref(db, 'users/' + userId), (snapshot) => {
+        currentUser = snapshot.val();
+        if(!currentUser) return;
+        document.getElementById('userName').innerText = currentUser.name;
+        document.getElementById('userSteam').innerText = currentUser.steamId || `ID: ${userId}`;
+        document.getElementById('userBalance').innerText = (currentUser.balance || 0).toLocaleString() + ' ₸';
+        document.getElementById('userAvatar').src = (currentUser.gender === 'female') ? 'avatar2.png' : 'avatar1.png';
+        
+        if(Object.keys(productsData).length > 0) renderAll(productsData);
+    });
+
+    onValue(ref(db, `users/${userId}/products`), (snapshot) => {
+        productsData = snapshot.val() || {};
+        renderAll(productsData);
+    });
+
+    // --- RENDER ---
+    function renderAll(products) {
+        if(!currentUser) return; // Prevent race condition error
+
+        const dGrid = document.getElementById('depositsGrid');
+        const cGrid = document.getElementById('creditsGrid');
+        dGrid.innerHTML = ''; cGrid.innerHTML = '';
+        
+        let cDep = 0, cCred = 0, tDebt = 0;
+        hasActiveCredit = false;
+        const now = Date.now();
+
+        Object.keys(products).forEach(key => {
+            const p = products[key];
+            if (p.type === 'deposit') {
+                cDep++;
+                let currentAmt = p.amount;
+                if(p.status === 'active') {
+                    const diff = now - p.startTime;
+                    const cycles = Math.floor(diff / 600000); // 10 мин
+                    const profit = (p.initialAmount * p.rate / 100) * cycles;
+                    currentAmt = p.initialAmount + profit;
+                }
+                dGrid.appendChild(createCardHTML(key, p, currentAmt, now));
+            } else if (p.type === 'credit') {
+                cCred++;
+                hasActiveCredit = true;
+                const debt = p.totalToPay - (p.paid || 0);
+                tDebt += debt;
+                cGrid.appendChild(createCardHTML(key, p, debt, now));
+            }
+        });
+        document.getElementById('stCountDep').innerText = cDep;
+        document.getElementById('stCountCred').innerText = cCred;
+        document.getElementById('stTotalDebt').innerText = tDebt.toLocaleString() + ' ₸';
+    }
+
+    function formatMinSec(ms) {
+        if (ms < 0) return "00:00";
+        const totalSec = Math.floor(ms / 1000);
+        const m = Math.floor(totalSec / 60);
+        const s = totalSec % 60;
+        return `${m}:${s < 10 ? '0'+s : s}`;
+    }
+
+    function createCardHTML(id, p, amountVal, now) {
+        const div = document.createElement('div');
+        const isFrozen = p.status === 'frozen';
+        let isOverdue = false;
+        
+        if (p.type === 'credit' && p.status !== 'frozen') {
+            const endTime = p.startTime + (p.duration * 60000);
+            if (now > endTime) isOverdue = true;
+        }
+
+        let classes = `prod-card ${p.type}`;
+        if (isFrozen) classes += ' frozen';
+        if (isOverdue) classes += ' overdue';
+        div.className = classes;
+        
+        let ribbons = '';
+        if (isFrozen) ribbons += `<div class="ribbon ribbon-blue">ЗАМОРОЖЕН</div>`;
+        if (isOverdue) ribbons += `<div class="ribbon ribbon-yellow">ПРОСРОЧЕН</div>`;
+
+        let footerInfo = '';
+        let timerId = `timer_${id}`;
+
+        if (p.type === 'deposit') {
+            const diff = now - p.startTime;
+            const cycleMs = 600000; 
+            const timeInCycle = diff % cycleMs; 
+            const left = cycleMs - timeInCycle;
+            const displayTime = isFrozen ? '--:--' : formatMinSec(left);
+            footerInfo = `Обновление через: <span class="timer-val" id="${timerId}">${displayTime}</span>`;
+            if(!isFrozen) startRealTimer(timerId, p.startTime, cycleMs, false);
+
+        } else {
+            const endTime = p.startTime + (p.duration * 60000);
+            const left = endTime - now;
+            if(isOverdue) footerInfo = 'Время вышло';
+            else footerInfo = `Осталось: <span class="timer-val" id="${timerId}" style="color:var(--red)">${isFrozen ? 'СТОП' : formatMinSec(left)}</span>`;
+            if(!isFrozen && !isOverdue) startRealTimer(timerId, endTime, 0, true);
+        }
+
+        let complaintHtml = '';
+        if (isOverdue) {
+            const cName = currentUser ? currentUser.name : 'Игрок';
+            complaintHtml = `<div class="complaint-btn" onclick="copyComplaint('${cName}')"><i class="fas fa-exclamation-triangle"></i> Копировать жалобу</div>`;
+        }
+
+        div.innerHTML = `
+            ${ribbons}
+            <div class="pc-top">
+                <span style="font-weight:bold; font-size:14px;">${p.type === 'deposit' ? 'Вклад' : 'Кредит'}</span>
+                <span class="pc-badge">${p.type === 'deposit' ? `+${p.rate}% / 10м` : `${p.rate}%`}</span>
+            </div>
+            <div class="pc-amount">${amountVal.toLocaleString()} ₸</div>
+            <div class="pc-info">
+                <span>${p.type === 'deposit' ? 'Баланс' : 'Долг'}</span>
+                <span>${footerInfo}</span>
+            </div>
+            ${complaintHtml}
+        `;
+        div.oncontextmenu = (e) => showCtx(e, id, p, isOverdue);
+        return div;
+    }
+
+    // --- AUTO-UPDATE LOGIC ---
+    function startRealTimer(elId, targetTimeOrStart, cycleMs, isCredit) {
+        const interval = setInterval(() => {
+            const el = document.getElementById(elId);
+            if(!el) { clearInterval(interval); return; }
+            
+            const now = Date.now();
+            let msLeft = 0;
+            
+            if (isCredit) {
+                msLeft = targetTimeOrStart - now;
+                if (msLeft <= 0) {
+                    el.innerText = "00:00";
+                    clearInterval(interval);
+                    // АВТО-ОБНОВЛЕНИЕ: Перерисовываем список, чтобы карточка стала серой
+                    renderAll(productsData);
+                } else {
+                    el.innerText = formatMinSec(msLeft);
+                }
+            } else {
+                const diff = now - targetTimeOrStart;
+                const timeInCycle = diff % cycleMs;
+                msLeft = cycleMs - timeInCycle;
+                el.innerText = formatMinSec(msLeft);
+            }
+        }, 1000);
+    }
+
+    // --- CONTEXT MENU ---
+    const ctx = document.getElementById('contextMenu');
+    
+    window.showCtx = (e, id, p, isOverdue) => {
+        e.preventDefault();
+        ctx.style.display = 'block';
+        ctx.style.left = `${e.pageX}px`;
+        ctx.style.top = `${e.pageY}px`;
+        ctx.innerHTML = '';
+
+        if (p.type === 'deposit') {
+            addItem('fas fa-hand-holding-usd', 'Закрыть (Вывести)', () => closeDeposit(id));
+            addItem('fas fa-snowflake', p.status === 'frozen' ? 'Разморозить' : 'Заморозить', () => toggleFreeze(id, p.status));
+        } else {
+            // КРЕДИТ
+            if (isOverdue) {
+                // ПРИНУДИТЕЛЬНОЕ ЗАКРЫТИЕ (Красная кнопка)
+                addItem('fas fa-ban', 'Принудительное закрытие', () => payFull(id), true);
+                addItem('fas fa-clock', 'Дать +10 минут', () => addExtraTime(id, p.duration));
+            } else {
+                addItem('fas fa-check-double', 'Полное погашение', () => payFull(id));
+                addItem('fas fa-coins', 'Оплатить часть', () => {
+                    showPrompt("Сумма оплаты:", (val) => {
+                        const amt = parseFloat(val);
+                        if(amt) payPartial(id, amt);
+                    });
+                });
+                addItem('fas fa-snowflake', p.status === 'frozen' ? 'Разморозить' : 'Заморозить', () => toggleFreeze(id, p.status));
+            }
+        }
+    };
+
+    function addItem(icon, text, fn, isDanger = false) {
+        const d = document.createElement('div');
+        d.className = `ctx-item ${isDanger ? 'danger' : ''}`;
+        d.innerHTML = `<i class="${icon}"></i> ${text}`;
+        d.onclick = () => { ctx.style.display = 'none'; fn(); };
+        ctx.appendChild(d);
+    }
+    document.addEventListener('click', () => ctx.style.display = 'none');
+
+    // --- ACTIONS ---
+    window.addExtraTime = async (id, currentDuration) => {
+        showConfirm("Добавить 10 минут ко времени кредита?", async () => {
+            await update(ref(db, `users/${userId}/products/${id}`), { duration: currentDuration + 10 });
+        });
+    };
+
+    window.closeDeposit = async (id) => {
+        showConfirm("Закрыть вклад и вывести средства?", async () => {
+            const p = productsData[id];
+            const diff = Date.now() - p.startTime;
+            const cycles = Math.floor(diff / 600000);
+            const profit = (p.initialAmount * p.rate / 100) * cycles;
+            const total = p.initialAmount + profit;
+            
+            await update(ref(db, `users/${userId}`), { balance: (currentUser.balance || 0) + total });
+            await remove(ref(db, `users/${userId}/products/${id}`));
+        });
+    };
+
+    window.payFull = async (id) => {
+        const p = productsData[id];
+        const debt = p.totalToPay - (p.paid || 0);
+        const msg = p.type === 'credit' && p.status !== 'frozen' && Date.now() > (p.startTime + p.duration*60000) 
+            ? `Принудительно списать ${debt.toLocaleString()} ₸?` 
+            : `Списать ${debt.toLocaleString()} ₸ для погашения?`;
+
+        showConfirm(msg, async () => {
+            if((currentUser.balance || 0) < debt) return showAlert("Недостаточно средств");
+            await update(ref(db, `users/${userId}`), { balance: (currentUser.balance || 0) - debt });
+            await remove(ref(db, `users/${userId}/products/${id}`));
+        });
+    };
+
+    window.payPartial = async (id, amt) => {
+        const p = productsData[id];
+        const debt = p.totalToPay - (p.paid || 0);
+        
+        if (amt > debt) amt = debt; 
+        if ((currentUser.balance || 0) < amt) return showAlert("Недостаточно средств");
+
+        await update(ref(db, `users/${userId}`), { balance: (currentUser.balance || 0) - amt });
+        const newPaid = (p.paid || 0) + amt;
+
+        if (newPaid >= p.totalToPay - 0.1) {
+             showAlert("Кредит полностью погашен!");
+             await remove(ref(db, `users/${userId}/products/${id}`));
+        } else {
+             await update(ref(db, `users/${userId}/products/${id}`), { paid: newPaid });
+             showAlert(`Оплачено ${amt.toLocaleString()} ₸. Остаток: ${(p.totalToPay - newPaid).toLocaleString()} ₸`);
+        }
+    };
+
+    window.toggleFreeze = async (id, status) => {
+        await update(ref(db, `users/${userId}/products/${id}`), { status: status === 'frozen' ? 'active' : 'frozen' });
+    };
+
+    // --- PRODUCT & MONEY LOGIC ---
+    window.checkAndOpenCredit = () => {
+        if (hasActiveCredit) return showAlert("У клиента уже есть кредит! Погасите его.");
+        openProductModal('credit');
+    };
+    window.openProductModal = (type) => {
+        document.getElementById('prodType').value = type;
+        document.getElementById('prodModalTitle').innerText = type === 'deposit' ? 'Открыть вклад' : 'Выдать кредит';
+        document.getElementById('prodDurationBlock').style.display = type === 'credit' ? 'block' : 'none';
+        document.getElementById('productModal').style.display = 'flex';
+    };
+    window.createProduct = async () => {
+        const type = document.getElementById('prodType').value;
+        const amount = parseFloat(document.getElementById('prodAmount').value);
+        const rate = parseFloat(document.getElementById('prodRate').value);
+        if (!amount || !rate) return showAlert("Заполните все поля");
+        const data = { type, initialAmount: amount, amount, rate, startTime: Date.now(), status: 'active' };
+        if (type === 'credit') {
+            data.duration = parseFloat(document.getElementById('prodDuration').value);
+            data.totalToPay = amount + (amount * rate / 100);
+            await update(ref(db, `users/${userId}`), { balance: (currentUser.balance || 0) + amount });
+        } else {
+            if ((currentUser.balance || 0) < amount) return showAlert("Недостаточно средств");
+            await update(ref(db, `users/${userId}`), { balance: (currentUser.balance || 0) - amount });
+        }
+        await push(ref(db, `users/${userId}/products`), data);
+        closeModal('productModal');
+    };
+
+    window.openMoneyModal = (type) => {
+        document.getElementById('opType').value = type;
+        document.getElementById('moneyModal').style.display = 'flex';
+        document.getElementById('blockDeposit').style.display = type === 'deposit' ? 'block' : 'none';
+        document.getElementById('blockWithdraw').style.display = type === 'deposit' ? 'none' : 'block';
+    };
+    window.performMoneyOp = async () => {
+        const type = document.getElementById('opType').value;
+        const refUser = ref(db, `users/${userId}`);
+        let finalAmt = 0;
+        if (type === 'deposit') {
+            const base = parseFloat(document.getElementById('opAmountDep').value);
+            const perc = parseFloat(document.getElementById('opPercent').value) || 0;
+            if (!base) return showAlert("Введите сумму");
+            finalAmt = (currentUser.balance || 0) + (base - (base * perc / 100));
+        } else {
+            const val = parseFloat(document.getElementById('opAmountWith').value);
+            if (!val) return showAlert("Введите сумму");
+            if (val > (currentUser.balance || 0)) return showAlert("Недостаточно средств");
+            finalAmt = (currentUser.balance || 0) - val;
+        }
+        await update(refUser, { balance: finalAmt });
+        closeModal('moneyModal');
+    };
+
+    window.copyComplaint = (name) => {
+        navigator.clipboard.writeText(`@${name} нарушил правило 1.1 обман игровой валютой для получения выгоды`);
+        showAlert("Жалоба скопирована!");
+    };
+    window.closeModal = (id) => document.getElementById(id).style.display = 'none';
+</script>
+</body>
+</html>
