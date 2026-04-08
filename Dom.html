@@ -24,7 +24,8 @@
         .tab-content.active, .sub-tab.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .card { background: #ffffff; border-radius: 24px; padding: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid #f9fafb; margin-bottom: 16px; }
+        .card { background: #ffffff; border-radius: 24px; padding: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid #f9fafb; margin-bottom: 16px; transition: transform 0.1s; }
+        .card:active { transform: scale(0.98); }
         input, select { transition: all 0.2s; }
         input:focus, select:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
         
@@ -314,6 +315,35 @@
         </div>
     </div>
 
+    <div id="machineDetailsModal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-[10000] p-4 backdrop-blur-md transition-opacity">
+        <div class="bg-white rounded-[28px] p-5 w-full max-w-sm shadow-2xl transform transition-transform scale-95 overflow-hidden">
+            <div class="flex justify-between items-start mb-2">
+                <h3 class="text-2xl font-extrabold text-gray-900 leading-tight" id="detailName">Название</h3>
+                <button onclick="closeModal('machineDetailsModal')" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 font-bold text-lg hover:bg-gray-200 transition-colors">&times;</button>
+            </div>
+            <p class="text-sm text-gray-500 font-medium mb-4" id="detailAddress">Адрес</p>
+
+            <div class="w-full h-44 bg-gray-200 rounded-[20px] mb-5 overflow-hidden relative border border-gray-100 shadow-inner">
+                <img id="detailPhoto" src="" alt="Фото места" class="w-full h-full object-cover">
+                <div id="detailDistanceBadge" class="absolute bottom-3 right-3 bg-blue-600/95 backdrop-blur text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow-lg"></div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 mb-5">
+                <div class="bg-blue-50/80 rounded-[20px] p-4 border border-blue-100/50">
+                    <p class="text-[10px] text-blue-500 font-bold uppercase tracking-wide mb-1">Заработано</p>
+                    <p class="text-xl font-extrabold text-blue-700" id="detailRevenue">0 ₽</p>
+                </div>
+                <div class="bg-gray-50 rounded-[20px] p-4 border border-gray-100">
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wide mb-1">Товара внутри</p>
+                    <p class="text-xl font-extrabold text-gray-800" id="detailStock">0 шт</p>
+                </div>
+            </div>
+            <div class="text-center bg-gray-50 py-2.5 rounded-xl border border-gray-100">
+                <p class="text-xs text-gray-500 font-bold uppercase tracking-wide" id="detailLastDate">Был там: -</p>
+            </div>
+        </div>
+    </div>
+
     <div class="bottom-nav">
         <div class="nav-item active" onclick="switchTab('home', this)"><span class="nav-icon">📊</span><span>Сводка</span></div>
         <div class="nav-item" onclick="switchTab('points', this)"><span class="nav-icon">📋</span><span>Точки</span></div>
@@ -376,6 +406,43 @@
         window.closeModalAndReset = (modalId, formId) => { window.closeModal(modalId); if(formId) document.getElementById(formId).reset(); };
         window.openAddPointModal = () => { document.getElementById('geoBtn').innerHTML = '📍'; document.getElementById('newCoords').value = ''; window.openModal('newPointModal'); }
 
+        // Открытие подробной карточки автомата
+        window.openMachineDetails = (id) => {
+            const m = machinesList[id];
+            if(!m) return;
+            const stat = machinesStats[id] || { total: 0, latestStock: 0, lastDate: 'Нет данных' };
+            
+            document.getElementById('detailName').textContent = m.name;
+            document.getElementById('detailAddress').textContent = m.address;
+            document.getElementById('detailRevenue').textContent = stat.total.toLocaleString() + ' ₽';
+            document.getElementById('detailStock').textContent = stat.latestStock + ' шт';
+            document.getElementById('detailLastDate').textContent = 'Был там: ' + stat.lastDate;
+
+            let distStr = '';
+            // Заглушка, если нет координат
+            let photoUrl = 'https://images.unsplash.com/photo-1574627685651-64d8db1d261e?auto=format&fit=crop&q=80&w=400'; 
+            
+            if(m.coords) {
+                const c = String(m.coords).split(',');
+                const lat = parseFloat(c[0]); const lng = parseFloat(c[1]);
+                // Подгружаем мини-карту из Яндекс API с отметкой, где находится аппарат
+                photoUrl = `https://static-maps.yandex.ru/1.x/?ll=${lng},${lat}&size=400,200&z=15&l=map&pt=${lng},${lat},pm2blm`;
+                
+                if(userLat && userLng && !isNaN(lat) && !isNaN(lng)) {
+                    const dist = getDistance(userLat, userLng, lat, lng);
+                    distStr = `📍 ${dist} км от вас`;
+                }
+            }
+
+            document.getElementById('detailPhoto').src = photoUrl;
+            
+            const badge = document.getElementById('detailDistanceBadge');
+            if(distStr) { badge.textContent = distStr; badge.style.display = 'block'; } 
+            else { badge.style.display = 'none'; }
+
+            openModal('machineDetailsModal');
+        };
+
         // --- НАВИГАЦИЯ ---
         window.switchTab = (tabId, element) => {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -412,37 +479,52 @@
         
         window.bankruptMachine = (id, name) => { if(confirm(`Снять точку?\nАвтомат "${name}" будет удален.`)) remove(ref(db, `machines/${id}`)); };
 
-        // Отрисовка списка автоматов (С поиском, дистанцией и сводкой)
+        // Отрисовка списка автоматов (С поиском, сортировкой по дистанции и сводкой)
         window.filterPointsList = () => renderPointsList();
         
         window.renderPointsList = () => {
             const searchVal = document.getElementById('pointListSearch').value.toLowerCase();
             let listHtml = '';
 
-            Object.entries(machinesList).forEach(([id, m]) => {
-                if(!m) return;
-                const name = String(m.name || 'Без названия'); const address = String(m.address || '');
+            // 1. Превращаем объект в массив и высчитываем дистанцию для сортировки
+            let machinesArray = Object.entries(machinesList).map(([id, m]) => {
+                let dist = Infinity; // По умолчанию очень далеко
+                if(m.coords && userLat && userLng) {
+                    const c = String(m.coords).split(',');
+                    const lat = parseFloat(c[0]); const lng = parseFloat(c[1]);
+                    if(!isNaN(lat) && !isNaN(lng)) {
+                        dist = parseFloat(getDistance(userLat, userLng, lat, lng));
+                    }
+                }
+                return { id, dist, ...m };
+            });
+
+            // 2. Сортируем массив по дистанции (от ближайших к дальним)
+            machinesArray.sort((a, b) => a.dist - b.dist);
+
+            // 3. Рисуем отсортированный список
+            machinesArray.forEach(m => {
+                const name = String(m.name || 'Без названия'); 
+                const address = String(m.address || '');
                 if (searchVal && !name.toLowerCase().includes(searchVal) && !address.toLowerCase().includes(searchVal)) return;
 
                 const safeName = name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
                 const safeAddress = address.replace(/'/g, "\\'").replace(/"/g, '&quot;');
                 
-                // Расчет дистанции
-                let distHtml = ''; let routeLink = `https://yandex.ru/maps/?text=${encodeURIComponent(name + ' ' + address)}`;
-                if(m.coords && userLat && userLng) {
-                    const c = String(m.coords).split(','); const lat = parseFloat(c[0]); const lng = parseFloat(c[1]);
-                    if(!isNaN(lat) && !isNaN(lng)) {
-                        const dist = getDistance(userLat, userLng, lat, lng);
-                        distHtml = `<span class="bg-blue-50 text-blue-600 px-2 py-1 rounded-lg text-[10px] font-bold">📍 ${dist} км</span>`;
-                        routeLink = `https://yandex.ru/maps/?rtext=~${lat},${lng}`;
-                    }
+                let distHtml = ''; 
+                let routeLink = `https://yandex.ru/maps/?text=${encodeURIComponent(name + ' ' + address)}`;
+                
+                if(m.dist !== Infinity) {
+                    distHtml = `<span class="bg-blue-50 text-blue-600 px-2 py-1 rounded-lg text-[10px] font-bold">📍 ${m.dist} км</span>`;
+                    const c = String(m.coords).split(',');
+                    routeLink = `https://yandex.ru/maps/?rtext=~${parseFloat(c[0])},${parseFloat(c[1])}`;
                 }
 
-                // Сводка из статистики
-                const stat = machinesStats[id] || { total: 0, latestStock: 0, lastDate: 'Нет данных' };
+                const stat = machinesStats[m.id] || { total: 0, latestStock: 0, lastDate: 'Нет данных' };
 
+                // onclick добавлен на саму карточку. event.stopPropagation() защищает от срабатывания карточки при клике на внутренние кнопки.
                 listHtml += `
-                <div class="card !mb-3 !p-4">
+                <div class="card !mb-3 !p-4 cursor-pointer" onclick="openMachineDetails('${m.id}')">
                     <div class="flex justify-between items-start mb-2">
                         <div><h4 class="font-bold text-gray-900 text-[15px]">${name}</h4><p class="text-[10px] font-medium text-gray-500 mt-0.5">${address}</p></div>
                         ${distHtml}
@@ -460,10 +542,10 @@
                         </div>
                     </div>
 
-                    <div class="flex gap-2">
+                    <div class="flex gap-2" onclick="event.stopPropagation()">
                         <button onclick="window.open('${routeLink}', '_blank')" class="flex-[1.5] py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold rounded-xl transition-colors">🚗 Маршрут</button>
-                        <button onclick="openEditPointModal('${id}', '${safeName}', '${safeAddress}')" class="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-[11px] font-bold rounded-xl transition-colors">Изменить</button>
-                        <button onclick="bankruptMachine('${id}', '${safeName}')" class="flex-[0.5] py-2.5 bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-bold rounded-xl transition-colors">Снять</button>
+                        <button onclick="openEditPointModal('${m.id}', '${safeName}', '${safeAddress}')" class="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-[11px] font-bold rounded-xl transition-colors">Изменить</button>
+                        <button onclick="bankruptMachine('${m.id}', '${safeName}')" class="flex-[0.5] py-2.5 bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-bold rounded-xl transition-colors">Снять</button>
                     </div>
                 </div>`;
             });
@@ -472,11 +554,8 @@
 
         onValue(ref(db, 'machines'), (snapshot) => {
             machinesList = snapshot.val() || {};
-            // ИСПРАВЛЕНИЕ: Добавлена проверка на существование элемента dashMachines во избежание TypeError.
             const dashMachinesEl = document.getElementById('dashMachines');
-            if (dashMachinesEl) {
-                dashMachinesEl.textContent = Object.keys(machinesList).length;
-            }
+            if (dashMachinesEl) dashMachinesEl.textContent = Object.keys(machinesList).length;
             document.getElementById('pointsCountLabel').textContent = Object.keys(machinesList).length;
             renderPointsList();
         });
