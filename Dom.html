@@ -11,6 +11,7 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; margin: 0; padding-bottom: 90px; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
         
+        /* Навигация */
         .bottom-nav { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.7); border-radius: 28px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; z-index: 9000; width: 96%; max-width: 450px; }
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px 0; border-radius: 18px; color: #9ca3af; font-size: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
         .nav-item.active { color: #2563eb; }
@@ -18,6 +19,7 @@
         .nav-item.center-btn { background: #f3f4f6; border-radius: 20px; padding: 10px 20px; flex: 1.2; color: #4b5563; font-weight: 700; border: 1px solid #e5e7eb; }
         .nav-item.center-btn.active { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
 
+        /* Анимации и карточки */
         .tab-content, .sub-tab { display: none; padding: 15px; animation: fadeIn 0.3s ease; }
         .tab-content.active, .sub-tab.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -26,13 +28,10 @@
         input, select { transition: all 0.2s; }
         input:focus, select:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
         
+        /* Поиск */
         .autocomplete-items { position: absolute; border: 1px solid #e5e7eb; border-radius: 16px; z-index: 99; background: #fff; width: 100%; max-height: 250px; overflow-y: auto; box-shadow: 0 10px 20px rgba(0,0,0,0.1); top: 100%; left: 0; margin-top: 5px; }
         .autocomplete-items div { padding: 14px 16px; cursor: pointer; border-bottom: 1px solid #f3f4f6; font-size: 14px; }
         .autocomplete-items div:hover { background-color: #eff6ff; }
-        
-        /* Загрузка фото */
-        .photo-upload-label { display: flex; align-items: center; justify-content: center; width: 100%; height: 140px; border: 2px dashed #cbd5e1; border-radius: 16px; background: #f8fafc; cursor: pointer; background-size: cover; background-position: center; overflow: hidden; position: relative; }
-        .photo-upload-label span { background: rgba(0,0,0,0.5); color: white; padding: 4px 10px; border-radius: 8px; font-size: 12px; position: absolute; }
     </style>
 </head>
 <body>
@@ -40,10 +39,10 @@
     <div id="personalCabinet" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 rounded-b-[36px] shadow-lg shadow-blue-200/50 mb-4 transition-all">
         <div class="flex justify-between items-start mb-4">
             <div class="flex items-center gap-3 cursor-pointer group" onclick="openModal('resetModal')">
-                <div class="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center font-extrabold text-2xl shadow-inner border border-white/30 group-active:scale-95 transition-transform">П</div>
+                <div class="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center font-extrabold text-2xl shadow-inner border border-white/30 group-active:scale-95 transition-transform">А</div>
                 <div>
                     <p class="text-[10px] text-blue-200 uppercase tracking-widest font-bold mb-0.5">Владелец сети</p>
-                    <h2 class="text-xl font-bold leading-tight">Паша</h2>
+                    <h2 class="text-xl font-bold leading-tight">Ачыты</h2>
                 </div>
             </div>
             <button onclick="openModal('withdrawModal')" class="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors border border-white/30">Вывести ↓</button>
@@ -104,9 +103,9 @@
     <div id="tab-entry" class="tab-content pt-0">
         <h1 class="text-2xl font-extrabold text-gray-900 mb-4 px-2">Учет операций</h1>
         <div class="card !p-5">
-            <div class="flex bg-gray-100 rounded-xl p-1.5 mb-5 relative">
-                <button id="modeIncome" class="flex-1 py-3 text-sm font-bold rounded-lg bg-white shadow-sm text-blue-600 transition-all" onclick="setMode('income')">Инкассация</button>
-                <button id="modeAudit" class="flex-1 py-3 text-sm font-bold rounded-lg text-gray-500 hover:text-gray-700 transition-all" onclick="setMode('audit')">Ревизия</button>
+            <div class="flex bg-gray-100 rounded-xl p-1.5 mb-5">
+                <button id="modeIncome" class="flex-1 py-2.5 text-sm font-bold rounded-lg bg-white shadow-sm text-blue-600 transition-all" onclick="setMode('income')">Инкассация</button>
+                <button id="modeAudit" class="flex-1 py-2.5 text-sm font-bold rounded-lg text-gray-500 hover:text-gray-700 transition-all" onclick="setMode('audit')">Ревизия</button>
             </div>
 
             <div class="relative mb-5">
@@ -123,17 +122,14 @@
 
             <form id="recordForm" class="space-y-4">
                 <div id="revenueBlock">
-                    <label class="block text-[10px] font-bold text-gray-400 mb-1.5 uppercase tracking-wider">Сумма инкассации (₽)</label>
-                    <input type="number" id="recordRevenue" class="w-full p-4 bg-gray-50 border border-blue-200 rounded-xl outline-none text-2xl font-extrabold text-blue-700 text-center" required>
-                    <p class="text-[10px] text-gray-400 mt-2 text-center">Остаток товара в этом режиме вводить не нужно.</p>
+                    <label class="block text-[10px] font-bold text-gray-400 mb-1.5 uppercase tracking-wider">Выручка (₽)</label>
+                    <input type="number" id="recordRevenue" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xl font-extrabold" required>
                 </div>
-                <div id="stockBlock" style="display: none;">
-                    <label class="block text-[10px] font-bold text-gray-400 mb-1.5 uppercase tracking-wider">Новый остаток товара (шт)</label>
-                    <input type="number" id="recordStock" class="w-full p-4 bg-gray-50 border border-green-200 rounded-xl outline-none text-2xl font-extrabold text-green-700 text-center">
-                    <p class="text-[10px] text-gray-400 mt-2 text-center">Укажите точное количество товара после досыпки.</p>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-400 mb-1.5 uppercase tracking-wider">Остаток товара в колбе (шт)</label>
+                    <input type="number" id="recordStock" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xl font-extrabold" required>
                 </div>
-                
-                <button type="submit" class="w-full py-4 bg-gray-900 hover:bg-black text-white font-extrabold rounded-xl shadow-lg transition-colors text-lg mt-2">Внести данные</button>
+                <button type="submit" class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-extrabold rounded-xl shadow-lg shadow-blue-200 transition-colors text-lg mt-2">Внести данные</button>
             </form>
         </div>
     </div>
@@ -180,72 +176,11 @@
         </div>
     </div>
 
-    <div id="pointDetailsModal" class="fixed inset-0 bg-black/80 hidden items-end sm:items-center justify-center z-[10000] sm:p-4 transition-opacity">
-        <div class="bg-white rounded-t-[32px] sm:rounded-[24px] p-6 w-full max-w-md shadow-2xl transform transition-transform translate-y-full sm:translate-y-0 duration-300 max-h-[90vh] overflow-y-auto">
-            <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-5 sm:hidden"></div>
-            
-            <input type="hidden" id="detailMachineId">
-            
-            <label class="photo-upload-label mb-4" id="photoPreviewLabel">
-                <input type="file" accept="image/*" capture="environment" class="hidden" id="machinePhotoInput" onchange="handlePhotoUpload(this)">
-                <span id="photoHint">📷 Добавить фото точки</span>
-            </label>
-
-            <h3 class="text-2xl font-extrabold text-gray-900 mb-1" id="detailName">Название</h3>
-            <p class="text-xs font-medium text-gray-500 mb-5" id="detailAddress">Адрес</p>
-
-            <div class="bg-gray-50 p-4 rounded-2xl mb-5 border border-gray-100">
-                <label class="block text-[10px] font-bold text-gray-400 mb-1 uppercase tracking-wider">Какой наполнитель?</label>
-                <div class="flex gap-2">
-                    <input type="text" id="detailItemType" placeholder="Мячи, Жвачка Hubba..." class="w-full p-3 bg-white border border-gray-200 rounded-xl outline-none font-medium text-sm text-blue-700">
-                    <button onclick="saveMachineDetails()" class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-4 rounded-xl font-bold text-sm transition-colors">ОК</button>
-                </div>
-            </div>
-
-            <h4 class="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-wider">Ручная корректировка (Только при ошибках)</h4>
-            <div class="grid grid-cols-2 gap-3 mb-6">
-                <div>
-                    <label class="block text-[10px] font-bold text-gray-500 mb-1">СЧЕТЧИК (₽)</label>
-                    <input type="number" id="detailManualRev" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none font-bold text-sm">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-gray-500 mb-1">ОСТАТОК (ШТ)</label>
-                    <input type="number" id="detailManualStock" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none font-bold text-sm">
-                </div>
-                <button onclick="applyManualCorrection()" class="col-span-2 py-3 bg-gray-900 text-white font-bold rounded-xl shadow-md text-sm">Применить корректировку</button>
-            </div>
-
-            <div class="flex gap-3">
-                <button onclick="closePointDetails()" class="flex-1 py-3.5 bg-gray-100 text-gray-700 font-bold rounded-xl">Закрыть</button>
-                <button onclick="triggerBankruptFromDetails()" class="flex-1 py-3.5 bg-red-50 text-red-600 font-bold rounded-xl">Удалить точку</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="newPointModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[10000] p-4 backdrop-blur-sm transition-opacity">
-        <div class="bg-white rounded-[24px] p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95">
-            <h3 class="text-xl font-extrabold mb-2 text-gray-900">Добавить автомат</h3>
-            <p class="text-xs text-gray-500 mb-5">Нажмите 📍, чтобы привязать вашу текущую геопозицию.</p>
-            <form id="newMachineForm" class="space-y-3">
-                <input type="hidden" id="newCoords">
-                <input type="text" id="newMachineName" placeholder="Место / Название (ТЦ Азия)" required class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none font-medium text-sm">
-                <div class="flex gap-2">
-                    <input type="text" id="newMachineAddress" placeholder="Описание или Адрес" required class="flex-1 p-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none font-medium text-sm">
-                    <button type="button" onclick="getGeoLocation()" id="geoBtn" class="w-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-xl transition-colors">📍</button>
-                </div>
-                <div class="flex gap-3 pt-3">
-                    <button type="button" onclick="closeModalAndReset('newPointModal', 'newMachineForm')" class="flex-1 py-3.5 bg-gray-100 text-gray-700 font-bold rounded-xl">Отмена</button>
-                    <button type="submit" class="flex-[1.5] py-3.5 bg-blue-600 text-white font-bold rounded-xl">Сохранить</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <div id="resetModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[10000] p-4 backdrop-blur-sm transition-opacity">
         <div class="bg-white rounded-[24px] p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95 text-center">
             <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">⚠️</div>
             <h3 class="text-xl font-extrabold mb-2 text-gray-900">Сброс настроек</h3>
-            <p class="text-sm text-gray-500 mb-6">Вы собираетесь удалить <b>ВСЕ</b> данные. Это действие <b>НЕОБРАТИМО</b>.</p>
+            <p class="text-sm text-gray-500 mb-6">Вы собираетесь удалить <b>ВСЕ</b> данные: точки, финансы, склад и историю. Это действие <b>НЕОБРАТИМО</b>.</p>
             <div class="flex gap-3">
                 <button onclick="closeModal('resetModal')" class="flex-1 py-3.5 bg-gray-100 text-gray-700 font-bold rounded-xl">Отмена</button>
                 <button id="resetBtn" onclick="executeFactoryReset()" class="flex-1 py-3.5 bg-red-600 text-white font-bold rounded-xl shadow-md">Сбросить</button>
@@ -256,9 +191,13 @@
     <div id="withdrawModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[10000] p-4 backdrop-blur-sm transition-opacity">
         <div class="bg-white rounded-[24px] p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95">
             <h3 class="text-xl font-extrabold mb-1 text-gray-900">Вывод на себя</h3>
-            <form id="withdrawForm" class="space-y-4 mt-4">
+            <p class="text-xs text-gray-500 mb-5">Спишется со свободного баланса</p>
+            <form id="withdrawForm" class="space-y-4">
                 <input type="number" id="withdrawAmount" placeholder="Сумма вывода (₽)" required class="w-full p-4 bg-gray-50 border border-blue-200 rounded-xl outline-none font-extrabold text-xl text-blue-700">
-                <div class="flex gap-3 pt-3"><button type="button" onclick="closeModalAndReset('withdrawModal', 'withdrawForm')" class="flex-1 py-3.5 bg-gray-100 text-gray-700 font-bold rounded-xl">Отмена</button><button type="submit" class="flex-[2] py-3.5 bg-blue-600 text-white font-bold rounded-xl">Списать</button></div>
+                <div class="flex gap-3 pt-3">
+                    <button type="button" onclick="closeModalAndReset('withdrawModal', 'withdrawForm')" class="flex-1 py-3.5 bg-gray-100 text-gray-700 font-bold rounded-xl">Отмена</button>
+                    <button type="submit" class="flex-[2] py-3.5 bg-blue-600 text-white font-bold rounded-xl">Списать</button>
+                </div>
             </form>
         </div>
     </div>
@@ -268,8 +207,109 @@
             <h3 class="text-xl font-extrabold mb-1 text-gray-900">Оформление закупки</h3>
             <form id="purchaseForm" class="space-y-3 mt-4">
                 <input type="text" id="purchName" placeholder="Товар (Жвачка, Мячи)" required class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm font-medium">
-                <div class="grid grid-cols-2 gap-3"><input type="number" id="purchQty" placeholder="Кол-во (шт)" required class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm font-medium"><input type="number" id="purchPrice" placeholder="Сумма (₽)" required class="w-full p-3.5 bg-red-50 border border-red-200 rounded-xl outline-none text-sm font-bold text-red-700"></div>
-                <div class="flex gap-3 pt-4"><button type="button" onclick="closeModalAndReset('purchaseModal', 'purchaseForm')" class="flex-1 py-3.5 bg-gray-100 text-gray-700 font-bold rounded-xl">Отмена</button><button type="submit" class="flex-[2] py-3.5 bg-blue-600 text-white font-bold rounded-xl">Купить</button></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="number" id="purchQty" placeholder="Кол-во (шт)" required class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm font-medium">
+                    <input type="number" id="purchPrice" placeholder="Сумма (₽)" required class="w-full p-3.5 bg-red-50 border border-red-200 rounded-xl outline-none text-sm font-bold text-red-700">
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="closeModalAndReset('purchaseModal', 'purchaseForm')" class="flex-1 py-3.5 bg-gray-100 text-gray-700 font-bold rounded-xl">Отмена</button>
+                    <button type="submit" class="flex-[2] py-3.5 bg-blue-600 text-white font-bold rounded-xl">Купить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="newDebtModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[10000] p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-[24px] p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95">
+            <h3 class="text-xl font-extrabold mb-5 text-gray-900">Новая рассрочка</h3>
+            <form id="debtForm" class="space-y-3">
+                <input type="text" id="debtName" placeholder="Название (Аренда, Покупка)" required class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm font-medium">
+                <input type="number" id="debtTotalAmount" placeholder="Общая сумма (₽)" required class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm font-bold">
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-400 mb-1 uppercase pl-1">Платежей в месяц</label>
+                    <select id="debtFreq" class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm font-medium" onchange="toggleDays()">
+                        <option value="1">1 раз в месяц</option>
+                        <option value="2">2 раза в месяц</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="number" id="debtDay1" min="1" max="31" placeholder="Число (10)" required class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm font-medium">
+                    <div id="day2Block" class="hidden">
+                        <input type="number" id="debtDay2" min="1" max="31" placeholder="Число (25)" class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm font-medium">
+                    </div>
+                </div>
+                <input type="number" id="debtPaymentSize" placeholder="Сумма 1 платежа (₽)" required class="w-full p-3.5 bg-purple-50 border border-purple-200 rounded-xl outline-none text-sm font-bold text-purple-700">
+                <div class="flex gap-3 pt-3">
+                    <button type="button" onclick="closeModalAndReset('newDebtModal', 'debtForm')" class="flex-1 py-3.5 bg-gray-100 text-gray-700 font-bold rounded-xl">Отмена</button>
+                    <button type="submit" class="flex-[1.5] py-3.5 bg-[#9333ea] text-white font-bold rounded-xl">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="payDebtModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[10000] p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-[24px] p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95">
+            <h3 class="text-xl font-extrabold mb-1 text-gray-900" id="payDebtModalTitle">Внесение платежа</h3>
+            <p class="text-xs text-gray-500 mb-5">Спишется с баланса</p>
+            <input type="hidden" id="payDebtId">
+            <input type="hidden" id="payDebtLeftAmount"> 
+            
+            <input type="number" id="payDebtAmount" required class="w-full p-4 bg-gray-50 border border-purple-200 rounded-xl outline-none font-extrabold text-2xl text-center text-purple-700 transition-colors">
+            <p class="text-[10px] text-red-500 text-center mt-2 hidden" id="payDebtError">Сумма больше остатка долга!</p>
+
+            <div class="flex gap-3 pt-5">
+                <button type="button" onclick="closeModal('payDebtModal')" class="flex-1 py-3.5 bg-gray-100 text-gray-700 font-bold rounded-xl">Отмена</button>
+                <button type="button" onclick="confirmPayment()" class="flex-[2] py-3.5 bg-[#9333ea] text-white font-bold rounded-xl shadow-md">Оплатить</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="newGoalModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[10000] p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-[24px] p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95">
+            <h3 class="text-xl font-extrabold mb-5 text-gray-900">Новая цель</h3>
+            <form id="goalForm" class="space-y-4">
+                <input type="text" id="goalName" placeholder="Название цели" required class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none font-medium text-sm">
+                <input type="number" id="goalAmount" placeholder="Сумма (₽)" required class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none font-bold text-sm">
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeModalAndReset('newGoalModal', 'goalForm')" class="flex-1 py-3.5 bg-gray-100 text-gray-700 font-bold rounded-xl">Отмена</button>
+                    <button type="submit" class="flex-[1.5] py-3.5 bg-green-500 text-white font-bold rounded-xl">Создать</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="newPointModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[10000] p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-[24px] p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95">
+            <h3 class="text-xl font-extrabold mb-2 text-gray-900">Добавить автомат</h3>
+            <p class="text-xs text-gray-500 mb-5">Нажмите 📍, чтобы привязать вашу текущую геопозицию (нужно для маршрутов).</p>
+            <form id="newMachineForm" class="space-y-3">
+                <input type="hidden" id="newCoords">
+                <input type="text" id="newMachineName" placeholder="Место / Название (ТЦ Азия)" required class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none font-medium text-sm">
+                
+                <div class="flex gap-2">
+                    <input type="text" id="newMachineAddress" placeholder="Описание или Адрес" required class="flex-1 p-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none font-medium text-sm">
+                    <button type="button" onclick="getGeoLocation()" id="geoBtn" class="w-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-xl transition-colors">📍</button>
+                </div>
+                
+                <div class="flex gap-3 pt-3">
+                    <button type="button" onclick="closeModalAndReset('newPointModal', 'newMachineForm')" class="flex-1 py-3.5 bg-gray-100 text-gray-700 font-bold rounded-xl">Отмена</button>
+                    <button type="submit" class="flex-[1.5] py-3.5 bg-blue-600 text-white font-bold rounded-xl">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="editPointModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[10000] p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-[24px] p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95">
+            <h3 class="text-xl font-extrabold mb-5 text-gray-900">Редактирование</h3>
+            <form id="editMachineForm" class="space-y-3">
+                <input type="hidden" id="editMachineId">
+                <input type="text" id="editMachineName" required class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none font-medium text-sm">
+                <input type="text" id="editMachineAddress" required class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none font-medium text-sm">
+                <div class="flex gap-3 pt-3">
+                    <button type="button" onclick="closeModal('editPointModal')" class="flex-1 py-3.5 bg-gray-100 text-gray-700 font-bold rounded-xl">Отмена</button>
+                    <button type="submit" class="flex-[1.5] py-3.5 bg-blue-600 text-white font-bold rounded-xl">Сохранить</button>
+                </div>
             </form>
         </div>
     </div>
@@ -295,28 +335,44 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Глобальные переменные
+        // --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ---
         let totalIncomeGlobal = 0; let totalExpensesGlobal = 0; let freeBalance = 0;
-        let machinesList = {}; let machinesStats = {}; let warehouseData = {}; 
-        let currentMode = 'income'; let userLat = null, userLng = null;
+        let machinesList = {}; let machinesStats = {}; let warehouseData = {}; let currentMode = 'income';
+        let userLat = null, userLng = null;
 
-        // --- УТИЛИТЫ ---
-        if (navigator.geolocation) {
-            navigator.geolocation.watchPosition(pos => { userLat = pos.coords.latitude; userLng = pos.coords.longitude; if(document.getElementById('tab-points').classList.contains('active')) renderPointsList(); }, err => console.log('Geo error'), { enableHighAccuracy: true });
+        // --- УТИЛИТЫ И ГЕОЛОКАЦИЯ ---
+        const formatRuDate = (dateObj) => { const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек']; return `${dateObj.getDate()} ${months[dateObj.getMonth()]}`; };
+        
+        // Расчет дистанции (Haversine formula)
+        function getDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; const dLat = (lat2-lat1)*(Math.PI/180); const dLon = (lon2-lon1)*(Math.PI/180);
+            const a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1*(Math.PI/180))*Math.cos(lat2*(Math.PI/180))*Math.sin(dLon/2)*Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return (R * c).toFixed(1);
         }
 
+        // Постоянное слежение за геопозицией для обновления расстояний
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition(pos => {
+                userLat = pos.coords.latitude; userLng = pos.coords.longitude;
+                renderPointsList(); // Перерисовываем список точек с новой дистанцией
+            }, err => console.log('Geo error', err), { enableHighAccuracy: true });
+        }
+
+        // Кнопка геопозиции при добавлении автомата
         window.getGeoLocation = () => {
-            const btn = document.getElementById('geoBtn'); btn.innerHTML = '⏳';
+            const btn = document.getElementById('geoBtn');
+            btn.innerHTML = '⏳';
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(pos => {
                     document.getElementById('newCoords').value = `${pos.coords.latitude},${pos.coords.longitude}`;
                     btn.innerHTML = '✅'; btn.classList.replace('bg-blue-100', 'bg-green-100'); btn.classList.replace('text-blue-600', 'text-green-600');
-                }, () => { btn.innerHTML = '❌'; alert('Разрешите доступ к геопозиции!'); });
+                }, () => { btn.innerHTML = '❌'; alert('Разрешите доступ к геопозиции в браузере!'); });
             }
         };
 
-        window.openModal = (id) => { const m = document.getElementById(id); m.classList.remove('hidden'); m.classList.add('flex'); setTimeout(() => { const inner = m.querySelector('div'); if(inner) { inner.classList.remove('scale-95'); inner.classList.remove('translate-y-full'); } }, 10); };
-        window.closeModal = (id) => { const m = document.getElementById(id); const inner = m.querySelector('div'); if(inner) { inner.classList.add('scale-95'); if(id === 'pointDetailsModal') inner.classList.add('translate-y-full'); } setTimeout(() => { m.classList.add('hidden'); m.classList.remove('flex'); }, 300); };
+        window.openModal = (id) => { const m = document.getElementById(id); m.classList.remove('hidden'); m.classList.add('flex'); setTimeout(() => m.querySelector('div').classList.remove('scale-95'), 10); };
+        window.closeModal = (id) => { const m = document.getElementById(id); m.querySelector('div').classList.add('scale-95'); setTimeout(() => { m.classList.add('hidden'); m.classList.remove('flex'); }, 200); };
         window.closeModalAndReset = (modalId, formId) => { window.closeModal(modalId); if(formId) document.getElementById(formId).reset(); };
         window.openAddPointModal = () => { document.getElementById('geoBtn').innerHTML = '📍'; document.getElementById('newCoords').value = ''; window.openModal('newPointModal'); }
 
@@ -329,139 +385,85 @@
             if(tabId === 'points') renderPointsList();
         };
 
-        // --- СБРОС К ЗАВОДСКИМ ---
-        window.executeFactoryReset = async () => {
-            const btn = document.getElementById('resetBtn'); btn.textContent = "Удаление..."; btn.disabled = true;
-            try { await remove(ref(db, '/')); alert('✅ Данные удалены.'); window.location.reload(); } catch(e) { alert('Ошибка: ' + e.message); btn.textContent = "Сбросить"; btn.disabled = false; }
+        window.switchSubTab = (subTabId) => {
+            document.querySelectorAll('.sub-tab').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('#tab-reports button').forEach(el => { el.classList.remove('bg-white', 'shadow-sm', 'text-blue-600'); el.classList.add('text-gray-500'); });
+            document.getElementById(`sub-${subTabId}`).classList.add('active');
+            const btn = document.getElementById(`btn-sub-${subTabId}`);
+            btn.classList.remove('text-gray-500'); btn.classList.add('bg-white', 'shadow-sm', 'text-blue-600');
         };
 
-        // --- БАЛАНС ---
-        function recalculateBalance() { freeBalance = totalIncomeGlobal - totalExpensesGlobal; document.getElementById('totalBusinessAccount').textContent = freeBalance.toLocaleString() + ' ₽'; }
-        onValue(ref(db, 'expenses'), (snapshot) => { totalExpensesGlobal = 0; const data = snapshot.val() || {}; Object.values(data).forEach(exp => { totalExpensesGlobal += exp.amount; }); recalculateBalance(); });
+        window.executeFactoryReset = async () => {
+            const btn = document.getElementById('resetBtn'); btn.textContent = "Удаление..."; btn.disabled = true;
+            try { await remove(ref(db, '/')); alert('✅ Все данные успешно удалены.'); window.location.reload(); } catch(e) { alert('Ошибка: ' + e.message); btn.textContent = "Сбросить"; btn.disabled = false; }
+        };
 
-        // --- УПРАВЛЕНИЕ ТОЧКАМИ И ФОТО ---
+        // --- БАЛАНС И РАСХОДЫ ---
+        function recalculateBalance() { freeBalance = totalIncomeGlobal - totalExpensesGlobal; document.getElementById('totalBusinessAccount').textContent = freeBalance.toLocaleString() + ' ₽'; }
+        onValue(ref(db, 'expenses'), (snapshot) => { totalExpensesGlobal = 0; const data = snapshot.val() || {}; Object.values(data).forEach(exp => { totalExpensesGlobal += exp.amount; }); recalculateBalance(); updateGoalsProgress(); });
+
+        // --- УПРАВЛЕНИЕ ТОЧКАМИ ---
         document.getElementById('newMachineForm').onsubmit = async (e) => {
             e.preventDefault(); await push(ref(db, 'machines'), { name: document.getElementById('newMachineName').value, address: document.getElementById('newMachineAddress').value, coords: document.getElementById('newCoords').value }); window.closeModalAndReset('newPointModal', 'newMachineForm');
         };
 
+        window.openEditPointModal = (id, name, address) => { document.getElementById('editMachineId').value = id; document.getElementById('editMachineName').value = name; document.getElementById('editMachineAddress').value = address; window.openModal('editPointModal'); };
+        document.getElementById('editMachineForm').onsubmit = async (e) => { e.preventDefault(); const id = document.getElementById('editMachineId').value; await update(ref(db, `machines/${id}`), { name: document.getElementById('editMachineName').value, address: document.getElementById('editMachineAddress').value }); window.closeModal('editPointModal'); };
+        
         window.bankruptMachine = (id, name) => { if(confirm(`Снять точку?\nАвтомат "${name}" будет удален.`)) remove(ref(db, `machines/${id}`)); };
 
-        // ОТКРЫТИЕ КАРТОЧКИ АВТОМАТА
-        window.openPointDetails = (id) => {
-            const m = machinesList[id]; if(!m) return;
-            const stat = machinesStats[id] || { total: 0, latestStock: 0 };
-            
-            document.getElementById('detailMachineId').value = id;
-            document.getElementById('detailName').textContent = m.name || 'Без названия';
-            document.getElementById('detailAddress').textContent = m.address || 'Адрес не указан';
-            document.getElementById('detailItemType').value = m.itemType || '';
-            document.getElementById('detailManualRev').value = stat.total;
-            document.getElementById('detailManualStock').value = stat.latestStock;
-            
-            const label = document.getElementById('photoPreviewLabel');
-            if(m.photoBase64) {
-                label.style.backgroundImage = `url(${m.photoBase64})`;
-                document.getElementById('photoHint').textContent = 'Изменить фото';
-            } else {
-                label.style.backgroundImage = 'none';
-                document.getElementById('photoHint').textContent = '📷 Добавить фото точки';
-            }
-            
-            window.openModal('pointDetailsModal');
-        };
-
-        window.closePointDetails = () => window.closeModal('pointDetailsModal');
-        window.triggerBankruptFromDetails = () => { const id = document.getElementById('detailMachineId').value; window.bankruptMachine(id, document.getElementById('detailName').textContent); window.closePointDetails(); };
-
-        // СЖАТИЕ И ЗАГРУЗКА ФОТО
-        window.handlePhotoUpload = (input) => {
-            const file = input.files[0]; if(!file) return;
-            document.getElementById('photoHint').textContent = 'Загрузка...';
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.createElement('canvas'); const MAX_WIDTH = 600;
-                    let width = img.width; let height = img.height;
-                    if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
-                    canvas.width = width; canvas.height = height;
-                    const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.6); // Сжатие до 60%
-                    
-                    const id = document.getElementById('detailMachineId').value;
-                    update(ref(db, `machines/${id}`), { photoBase64: dataUrl });
-                    
-                    document.getElementById('photoPreviewLabel').style.backgroundImage = `url(${dataUrl})`;
-                    document.getElementById('photoHint').textContent = 'Изменить фото';
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        };
-
-        // СОХРАНЕНИЕ ДЕТАЛЕЙ (Наполнитель)
-        window.saveMachineDetails = () => {
-            const id = document.getElementById('detailMachineId').value;
-            const itemType = document.getElementById('detailItemType').value;
-            update(ref(db, `machines/${id}`), { itemType: itemType });
-            alert('Наполнитель сохранен!');
-        };
-
-        // РУЧНАЯ КОРРЕКТИРОВКА ОСТАТКОВ И ВЫРУЧКИ
-        window.applyManualCorrection = async () => {
-            const id = document.getElementById('detailMachineId').value;
-            const mName = document.getElementById('detailName').textContent;
-            const newRev = parseFloat(document.getElementById('detailManualRev').value) || 0;
-            const newStock = parseInt(document.getElementById('detailManualStock').value) || 0;
-            
-            const stat = machinesStats[id] || { total: 0, latestStock: 0 };
-            
-            // Если изменилась выручка - создаем корректирующую запись
-            if(newRev !== stat.total) {
-                const diff = newRev - stat.total;
-                await push(ref(db, 'records'), { machineId: id, machineName: mName, type: 'income', revenue: diff, stock: newStock, note: 'Ручная корректировка', timestamp: Date.now(), date: new Date().toLocaleDateString('ru-RU', {day: '2-digit', month: '2-digit', year: '2-digit'}) });
-            } else if (newStock !== stat.latestStock) {
-                // Изменился только остаток
-                await push(ref(db, 'records'), { machineId: id, machineName: mName, type: 'audit', stock: newStock, note: 'Ручная корректировка', timestamp: Date.now(), date: new Date().toLocaleDateString('ru-RU', {day: '2-digit', month: '2-digit', year: '2-digit'}) });
-            }
-            alert('Данные скорректированы!'); window.closePointDetails();
-        };
-
-        // ОТРИСОВКА СПИСКА
+        // Отрисовка списка автоматов (С поиском, дистанцией и сводкой)
         window.filterPointsList = () => renderPointsList();
+        
         window.renderPointsList = () => {
-            const searchVal = document.getElementById('pointListSearch').value.toLowerCase(); let listHtml = '';
+            const searchVal = document.getElementById('pointListSearch').value.toLowerCase();
+            let listHtml = '';
+
             Object.entries(machinesList).forEach(([id, m]) => {
-                if(!m) return; const name = String(m.name || 'Без названия'); const address = String(m.address || '');
+                if(!m) return;
+                const name = String(m.name || 'Без названия'); const address = String(m.address || '');
                 if (searchVal && !name.toLowerCase().includes(searchVal) && !address.toLowerCase().includes(searchVal)) return;
 
+                const safeName = name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const safeAddress = address.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                
+                // Расчет дистанции
                 let distHtml = ''; let routeLink = `https://yandex.ru/maps/?text=${encodeURIComponent(name + ' ' + address)}`;
                 if(m.coords && userLat && userLng) {
                     const c = String(m.coords).split(','); const lat = parseFloat(c[0]); const lng = parseFloat(c[1]);
                     if(!isNaN(lat) && !isNaN(lng)) {
-                        const dist = getDistance(userLat, userLng, lat, lng); distHtml = `<span class="bg-blue-50 text-blue-600 px-2 py-1 rounded-lg text-[10px] font-bold">📍 ${dist} км</span>`; routeLink = `https://yandex.ru/maps/?rtext=~${lat},${lng}`;
+                        const dist = getDistance(userLat, userLng, lat, lng);
+                        distHtml = `<span class="bg-blue-50 text-blue-600 px-2 py-1 rounded-lg text-[10px] font-bold">📍 ${dist} км</span>`;
+                        routeLink = `https://yandex.ru/maps/?rtext=~${lat},${lng}`;
                     }
                 }
 
+                // Сводка из статистики
                 const stat = machinesStats[id] || { total: 0, latestStock: 0, lastDate: 'Нет данных' };
 
                 listHtml += `
-                <div class="card !mb-3 !p-0 overflow-hidden group cursor-pointer" onclick="openPointDetails('${id}')">
-                    <div class="p-4 flex justify-between items-start">
-                        <div>
-                            <h4 class="font-bold text-gray-900 text-[15px]">${name}</h4>
-                            <p class="text-[10px] font-medium text-gray-500 mt-0.5">${address}</p>
-                            ${m.itemType ? `<p class="text-[10px] font-bold text-blue-500 mt-1">📦 ${m.itemType}</p>` : ''}
+                <div class="card !mb-3 !p-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <div><h4 class="font-bold text-gray-900 text-[15px]">${name}</h4><p class="text-[10px] font-medium text-gray-500 mt-0.5">${address}</p></div>
+                        ${distHtml}
+                    </div>
+                    
+                    <div class="flex justify-between items-center bg-gray-50 rounded-xl p-2.5 mb-3 border border-gray-100">
+                        <div class="text-center flex-1 border-r border-gray-200">
+                            <p class="text-[9px] text-gray-400 uppercase font-bold mb-0.5">Принес</p><p class="text-xs font-bold text-blue-600">${stat.total.toLocaleString()} ₽</p>
                         </div>
-                        <div class="flex flex-col items-end gap-2">
-                            ${distHtml}
-                            <button onclick="event.stopPropagation(); window.open('${routeLink}', '_blank')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-[10px] font-bold px-2 py-1 rounded-lg">🚗 Маршрут</button>
+                        <div class="text-center flex-1 border-r border-gray-200">
+                            <p class="text-[9px] text-gray-400 uppercase font-bold mb-0.5">Остаток</p><p class="text-xs font-bold text-gray-800">${stat.latestStock} шт</p>
+                        </div>
+                        <div class="text-center flex-1">
+                            <p class="text-[9px] text-gray-400 uppercase font-bold mb-0.5">Был там</p><p class="text-[10px] font-bold text-gray-600">${stat.lastDate}</p>
                         </div>
                     </div>
-                    <div class="flex justify-between items-center bg-gray-50 p-2.5 border-t border-gray-100">
-                        <div class="text-center flex-1 border-r border-gray-200"><p class="text-[9px] text-gray-400 uppercase font-bold mb-0.5">Принес</p><p class="text-xs font-bold text-blue-600">${stat.total.toLocaleString()} ₽</p></div>
-                        <div class="text-center flex-1 border-r border-gray-200"><p class="text-[9px] text-gray-400 uppercase font-bold mb-0.5">Остаток</p><p class="text-xs font-bold text-gray-800">${stat.latestStock} шт</p></div>
-                        <div class="text-center flex-1"><p class="text-[9px] text-gray-400 uppercase font-bold mb-0.5">Был там</p><p class="text-[10px] font-bold text-gray-600">${stat.lastDate}</p></div>
+
+                    <div class="flex gap-2">
+                        <button onclick="window.open('${routeLink}', '_blank')" class="flex-[1.5] py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold rounded-xl transition-colors">🚗 Маршрут</button>
+                        <button onclick="openEditPointModal('${id}', '${safeName}', '${safeAddress}')" class="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-[11px] font-bold rounded-xl transition-colors">Изменить</button>
+                        <button onclick="bankruptMachine('${id}', '${safeName}')" class="flex-[0.5] py-2.5 bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-bold rounded-xl transition-colors">Снять</button>
                     </div>
                 </div>`;
             });
@@ -469,26 +471,21 @@
         };
 
         onValue(ref(db, 'machines'), (snapshot) => {
-            machinesList = snapshot.val() || {}; document.getElementById('dashMachines').textContent = Object.keys(machinesList).length; document.getElementById('pointsCountLabel').textContent = Object.keys(machinesList).length; renderPointsList();
+            machinesList = snapshot.val() || {};
+            // ИСПРАВЛЕНИЕ: Добавлена проверка на существование элемента dashMachines во избежание TypeError.
+            const dashMachinesEl = document.getElementById('dashMachines');
+            if (dashMachinesEl) {
+                dashMachinesEl.textContent = Object.keys(machinesList).length;
+            }
+            document.getElementById('pointsCountLabel').textContent = Object.keys(machinesList).length;
+            renderPointsList();
         });
 
-        // --- УЧЕТ (Инкассация и Ревизия) ---
+        // --- УЧЕТ И АНАЛИТИКА ---
         window.setMode = (mode) => {
-            currentMode = mode;
-            const inc = document.getElementById('modeIncome'); const aud = document.getElementById('modeAudit'); 
-            const revBlock = document.getElementById('revenueBlock'); const stockBlock = document.getElementById('stockBlock');
-            
-            if (mode === 'income') { 
-                inc.classList.add('bg-white', 'shadow-sm', 'text-blue-600'); inc.classList.remove('text-gray-500');
-                aud.classList.remove('bg-white', 'shadow-sm', 'text-blue-600'); aud.classList.add('text-gray-500');
-                revBlock.style.display = 'block'; stockBlock.style.display = 'none'; 
-                document.getElementById('recordRevenue').required = true; document.getElementById('recordStock').required = false; 
-            } else { 
-                aud.classList.add('bg-white', 'shadow-sm', 'text-blue-600'); aud.classList.remove('text-gray-500');
-                inc.classList.remove('bg-white', 'shadow-sm', 'text-blue-600'); inc.classList.add('text-gray-500');
-                revBlock.style.display = 'none'; stockBlock.style.display = 'block'; 
-                document.getElementById('recordRevenue').required = false; document.getElementById('recordStock').required = true; 
-            }
+            currentMode = mode; const inc = document.getElementById('modeIncome'); const aud = document.getElementById('modeAudit'); const block = document.getElementById('revenueBlock');
+            if (mode === 'income') { inc.className = "flex-1 py-2.5 text-sm font-bold rounded-lg bg-white shadow-sm text-blue-600"; aud.className = "flex-1 py-2.5 text-sm font-bold rounded-lg text-gray-500"; block.style.display = 'block'; document.getElementById('recordRevenue').required = true; } 
+            else { aud.className = "flex-1 py-2.5 text-sm font-bold rounded-lg bg-white shadow-sm text-blue-600"; inc.className = "flex-1 py-2.5 text-sm font-bold rounded-lg text-gray-500"; block.style.display = 'none'; document.getElementById('recordRevenue').required = false; }
         };
 
         const searchInput = document.getElementById('machineSearch'); const autoList = document.getElementById('autocompleteList');
@@ -504,57 +501,47 @@
             });
         });
 
-        window.selectMachine = (id, name) => { document.getElementById('selectedMachineId').value = id; document.getElementById('selectedMachineName').textContent = name; document.getElementById('selectedMachineDisplay').classList.remove('hidden'); searchInput.value = ''; autoList.classList.add('hidden'); };
+        window.selectMachine = (id, name) => {
+            document.getElementById('selectedMachineId').value = id; document.getElementById('selectedMachineName').textContent = name; document.getElementById('selectedMachineDisplay').classList.remove('hidden');
+            searchInput.value = ''; autoList.classList.add('hidden'); 
+        };
         window.clearSelection = () => { document.getElementById('selectedMachineId').value = ''; document.getElementById('selectedMachineDisplay').classList.add('hidden'); };
 
         document.getElementById('recordForm').onsubmit = async (e) => {
             e.preventDefault();
             const machineId = document.getElementById('selectedMachineId').value; if(!machineId) return alert('Выберите автомат!');
-            
-            const data = { machineId: machineId, machineName: machinesList[machineId].name, type: currentMode, timestamp: Date.now(), date: new Date().toLocaleDateString('ru-RU', {day: '2-digit', month: '2-digit', year: '2-digit'}) };
-            
-            if (currentMode === 'income') { data.revenue = parseFloat(document.getElementById('recordRevenue').value); }
-            if (currentMode === 'audit') { data.stock = parseInt(document.getElementById('recordStock').value); }
-
+            const data = { machineId: machineId, machineName: machinesList[machineId].name, type: currentMode, stock: parseInt(document.getElementById('recordStock').value), timestamp: Date.now(), date: new Date().toLocaleDateString('ru-RU', {day: '2-digit', month: '2-digit', year: '2-digit'}) };
+            if (currentMode === 'income') data.revenue = parseFloat(document.getElementById('recordRevenue').value);
             await push(ref(db, 'records'), data);
             window.clearSelection(); document.getElementById('recordForm').reset(); window.switchTab('home', document.querySelector('.bottom-nav .nav-item'));
         };
 
         onValue(ref(db, 'records'), (snapshot) => {
             const data = snapshot.val() || {}; const recordsArray = Object.values(data).sort((a,b) => b.timestamp - a.timestamp);
-            totalIncomeGlobal = 0; machinesStats = {}; const weeklyStats = {}; let recentHtml = '';
+            totalIncomeGlobal = 0; let totalStockCount = 0; machinesStats = {}; const weeklyStats = {}; let recentHtml = '';
             const oneWeekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
 
             recordsArray.forEach((rec, i) => {
                 const isIncome = rec.type === 'income';
                 if(isIncome) totalIncomeGlobal += rec.revenue;
-                
                 if(i < 5) {
                     recentHtml += `<div class="card !mb-2 !p-3 flex justify-between items-center">
-                        <div><p class="font-bold text-sm text-gray-900">${rec.machineName}</p><p class="text-[10px] font-bold text-gray-400 mt-0.5">${rec.date} • ${isIncome ? '💰 Инкассация' : '📦 Ревизия'}</p></div>
-                        <div class="text-right">${isIncome ? `<p class="font-bold text-green-600 text-sm">+${rec.revenue} ₽</p>` : `<p class="text-[10px] text-gray-800 font-bold">Ост: ${rec.stock} шт</p>`}</div>
+                        <div><p class="font-bold text-sm text-gray-900">${rec.machineName}</p><p class="text-[10px] font-bold text-gray-400 mt-0.5">${rec.date} • ${isIncome ? 'Инкасс.' : 'Ревизия'}</p></div>
+                        <div class="text-right">${isIncome ? `<p class="font-bold text-green-600 text-sm">+${rec.revenue} ₽</p>` : ''}<p class="text-[10px] text-gray-400 font-bold">Ост: ${rec.stock}</p></div>
                     </div>`;
                 }
                 
-                if(!machinesStats[rec.machineId]) machinesStats[rec.machineId] = { total: 0, latestStock: 0, lastDate: rec.date };
-                
+                if(!machinesStats[rec.machineId]) { machinesStats[rec.machineId] = { total: 0, latestStock: rec.stock, lastDate: rec.date }; totalStockCount += rec.stock; }
                 if(isIncome) machinesStats[rec.machineId].total += rec.revenue;
-                if(!isIncome && rec.stock !== undefined && machinesStats[rec.machineId].latestStock === 0) {
-                    // Забираем остаток из самой последней ревизии
-                    machinesStats[rec.machineId].latestStock = rec.stock;
-                }
                 
-                if(!weeklyStats[rec.machineId]) weeklyStats[rec.machineId] = { name: rec.machineName, weekRev: 0 };
+                if(!weeklyStats[rec.machineId]) weeklyStats[rec.machineId] = { weekRev: 0 };
                 if(isIncome && rec.timestamp > oneWeekAgo) { weeklyStats[rec.machineId].weekRev += rec.revenue; }
             });
-
-            // Подсчет общего остатка
-            let totalStockCount = 0; Object.values(machinesStats).forEach(s => totalStockCount += s.latestStock);
 
             document.getElementById('dashRevenue').textContent = totalIncomeGlobal.toLocaleString() + ' ₽';
             document.getElementById('dashTotalStock').textContent = totalStockCount.toLocaleString();
             document.getElementById('recentActivity').innerHTML = recentHtml || '<p class="text-xs text-center text-gray-400 py-4">Пусто</p>';
-            recalculateBalance(); renderPointsList();
+            recalculateBalance(); updateGoalsProgress(); renderPointsList();
             
             // Рейтинг недели
             let weeklyHtml = ''; let worstMachineId = null; let minWeekRev = Infinity;
@@ -569,6 +556,16 @@
                 </div>`;
             });
             document.getElementById('weeklyRatingList').innerHTML = weeklyHtml || '<p class="text-xs text-center text-gray-400 py-4">Нет данных</p>';
+
+            // Отчеты
+            let reportsHtml = ''; let bestMachine = null; let maxRev = -1;
+            Object.entries(machinesStats).forEach(([id, s]) => {
+                const mName = machinesList[id] ? machinesList[id].name : 'Удаленный автомат';
+                if(s.total > maxRev && s.total > 0) { maxRev = s.total; bestMachine = { name: mName }; }
+                reportsHtml += `<div class="card !p-4 !mb-2 flex justify-between items-center"><p class="font-bold text-sm text-gray-900">${mName}</p><p class="font-bold text-blue-600 text-sm">${s.total.toLocaleString()} ₽</p></div>`;
+            });
+            document.getElementById('reportsList').innerHTML = reportsHtml || '<p class="text-xs text-center text-gray-400 py-4">Нет данных</p>';
+            if(bestMachine) { document.getElementById('bestMachineCard').classList.remove('hidden'); document.getElementById('bestMachineName').textContent = bestMachine.name; }
         });
 
         // --- ВЫВОД И ЗАКУПКИ ---
@@ -578,6 +575,46 @@
         // --- СКЛАД ---
         window.updateQty = (id, currentQty, delta) => { const newQty = currentQty + delta; if(newQty < 0) remove(ref(db, `warehouse/${id}`)); else set(ref(db, `warehouse/${id}/qty`), newQty); };
         onValue(ref(db, 'warehouse'), (snapshot) => { warehouseData = snapshot.val() || {}; let html = ''; Object.entries(warehouseData).forEach(([id, item]) => { html += `<div class="card !mb-2 !p-4 flex justify-between items-center"><span class="font-bold text-sm text-gray-900">${item.name}</span><div class="flex items-center gap-3"><button type="button" onclick="updateQty('${id}', ${item.qty}, -10)" class="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full font-bold text-gray-600">-</button><span class="font-bold w-10 text-center text-blue-600">${item.qty}</span><button type="button" onclick="updateQty('${id}', ${item.qty}, 10)" class="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full font-bold text-gray-600">+</button></div></div>`; }); document.getElementById('warehouseList').innerHTML = html || '<p class="text-xs text-center text-gray-400 py-4">Склад пуст.</p>'; });
+
+        // --- РАССРОЧКИ ---
+        window.toggleDays = () => { if(document.getElementById('debtFreq').value === '2') { document.getElementById('day2Block').classList.remove('hidden'); document.getElementById('debtDay2').required = true; } else { document.getElementById('day2Block').classList.add('hidden'); document.getElementById('debtDay2').required = false; } };
+        document.getElementById('debtForm').onsubmit = async (e) => { e.preventDefault(); const days = [parseInt(document.getElementById('debtDay1').value)]; if(document.getElementById('debtFreq').value === '2') days.push(parseInt(document.getElementById('debtDay2').value)); await push(ref(db, 'debts'), { name: document.getElementById('debtName').value, totalAmount: parseFloat(document.getElementById('debtTotalAmount').value), paidAmount: 0, paymentSize: parseFloat(document.getElementById('debtPaymentSize').value), days: days.sort((a,b)=>a-b), created: Date.now() }); window.closeModalAndReset('newDebtModal', 'debtForm'); };
+
+        function getDetailedSchedule(daysArray, paymentSize, leftAmount, count = 4) { let schedule = []; let currentLeft = leftAmount; let tempDate = new Date(); tempDate.setHours(0,0,0,0); for (let i = 0; i < count; i++) { if (currentLeft <= 0) break; let cDay = tempDate.getDate(); let cMonth = tempDate.getMonth(); let cYear = tempDate.getFullYear(); let nextDay = daysArray.find(d => d >= cDay); if (nextDay === undefined) { nextDay = daysArray[0]; cMonth++; if(cMonth > 11) { cMonth = 0; cYear++; } } let nDate = new Date(cYear, cMonth, nextDay); let amount = Math.min(paymentSize, currentLeft); schedule.push({ dateObj: nDate, display: formatRuDate(nDate), amount: amount }); currentLeft -= amount; tempDate = new Date(cYear, cMonth, nextDay + 1); } return schedule; }
+
+        window.openPayModal = (id, recommendedSize, maxAmount, isFull = false) => { document.getElementById('payDebtId').value = id; document.getElementById('payDebtLeftAmount').value = maxAmount; const input = document.getElementById('payDebtAmount'); input.value = recommendedSize; if(isFull) { document.getElementById('payDebtModalTitle').textContent = "Досрочное погашение"; input.readOnly = true; input.classList.add('bg-gray-100'); input.classList.remove('border-purple-200'); } else { document.getElementById('payDebtModalTitle').textContent = "Внесение платежа"; input.readOnly = false; input.classList.remove('bg-gray-100'); input.classList.add('border-purple-200'); } document.getElementById('payDebtError').classList.add('hidden'); window.openModal('payDebtModal'); };
+        document.getElementById('payDebtAmount').addEventListener('input', function() { const max = parseFloat(document.getElementById('payDebtLeftAmount').value); const current = parseFloat(this.value); if(current > max) { document.getElementById('payDebtError').classList.remove('hidden'); this.value = max; } else { document.getElementById('payDebtError').classList.add('hidden'); } });
+        
+        window.confirmPayment = async () => { const amount = parseFloat(document.getElementById('payDebtAmount').value); const id = document.getElementById('payDebtId').value; const max = parseFloat(document.getElementById('payDebtLeftAmount').value); if(!amount || amount <= 0) return alert("Введите сумму"); if(amount > max) return alert("Сумма превышает остаток!"); if(freeBalance < amount) return alert(`❌ Недостаточно средств!\nБаланс: ${freeBalance} ₽`); await push(ref(db, 'expenses'), { amount: amount, type: 'installment', debtId: id, timestamp: Date.now() }); get(ref(db, `debts/${id}`)).then((snapshot) => { const debt = snapshot.val(); if(debt) { const newPaid = Math.round((debt.paidAmount + amount) * 100) / 100; if(newPaid >= debt.totalAmount) remove(ref(db, `debts/${id}`)); else set(ref(db, `debts/${id}/paidAmount`), newPaid); } }); window.closeModal('payDebtModal'); };
+
+        onValue(ref(db, 'debts'), (snapshot) => {
+            const data = snapshot.val() || {}; let html = ''; let closestDebt = null; let minDiff = Infinity; const now = new Date().setHours(0,0,0,0);
+            Object.entries(data).forEach(([id, debt]) => {
+                const leftAmount = Math.round((debt.totalAmount - debt.paidAmount) * 100) / 100; if(leftAmount <= 0) return; 
+                const progress = Math.min(100, (debt.paidAmount / debt.totalAmount) * 100); const schedule = getDetailedSchedule(debt.days || [1], debt.paymentSize, leftAmount); const nextPayment = schedule[0];
+                if(nextPayment) { const diffDays = Math.ceil((nextPayment.dateObj.getTime() - now) / (1000 * 60 * 60 * 24)); if (diffDays >= 0 && diffDays < minDiff) { minDiff = diffDays; closestDebt = { ...debt, diff: diffDays, nextAmount: nextPayment.amount }; } }
+                let scheduleHtml = ''; schedule.forEach((p, idx) => { scheduleHtml += `<div class="flex-1 text-center"><div class="w-full h-1 rounded-full mb-1.5 ${idx === 0 ? 'bg-green-500' : 'bg-gray-200'}"></div><p class="text-[9px] text-green-600 font-bold mb-0.5">${p.display}</p><p class="text-[10px] font-extrabold text-gray-900">${p.amount} ₽</p></div>`; });
+                html += `<div class="bg-white rounded-[24px] p-5 mb-4 shadow-sm border border-gray-100"><div class="flex justify-between items-center mb-1"><span class="text-[24px] font-bold text-gray-900">${leftAmount.toLocaleString()} ₽</span><span class="text-[10px] font-bold text-gray-400 uppercase">из ${debt.totalAmount.toLocaleString()} ₽</span></div><p class="text-[13px] text-gray-500 mb-4">${nextPayment ? 'Спишем ' + nextPayment.display : 'Оплачено'} • ${debt.name}</p><div class="w-full bg-gray-100 rounded-full h-1.5 mb-4 overflow-hidden"><div class="bg-purple-500 h-1.5 rounded-full transition-all" style="width: ${progress}%"></div></div><div class="flex justify-between gap-1.5 mb-5 px-1">${scheduleHtml}</div><div class="flex gap-2"><button type="button" onclick="openPayModal('${id}', ${nextPayment ? nextPayment.amount : 0}, ${leftAmount}, false)" class="flex-[2] py-3.5 bg-[#f3e8ff] hover:bg-purple-200 text-[#9333ea] font-semibold rounded-2xl text-[15px] transition-colors">Платеж</button><button type="button" onclick="openPayModal('${id}', ${leftAmount}, ${leftAmount}, true)" class="flex-[1] py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-500 font-semibold rounded-2xl text-[13px] transition-colors">Досрочно</button></div></div>`;
+            });
+            document.getElementById('debtsList').innerHTML = html || '<p class="text-xs text-center text-gray-400 py-4">Нет активных рассрочек</p>';
+            const alertBox = document.getElementById('debtAlert');
+            if (closestDebt) { alertBox.classList.remove('hidden'); document.getElementById('nextDebtName').textContent = closestDebt.name; document.getElementById('nextDebtAmount').textContent = closestDebt.nextAmount.toLocaleString() + ' ₽'; document.getElementById('nextDebtDays').textContent = closestDebt.diff; if(closestDebt.diff <= 3) { alertBox.classList.remove('bg-red-50', 'border-red-100'); alertBox.classList.add('bg-red-500', 'text-white'); document.getElementById('nextDebtName').classList.replace('text-red-900', 'text-white'); document.getElementById('nextDebtAmount').classList.replace('text-red-600', 'text-white'); document.getElementById('nextDebtDays').classList.replace('text-red-600', 'text-red-600'); } else { alertBox.classList.add('bg-red-50', 'border-red-100'); alertBox.classList.remove('bg-red-500', 'text-white'); document.getElementById('nextDebtName').classList.replace('text-white', 'text-red-900'); document.getElementById('nextDebtAmount').classList.replace('text-white', 'text-red-600'); document.getElementById('nextDebtDays').classList.replace('text-red-600', 'text-red-600'); } } else { alertBox.classList.add('hidden'); }
+        });
+
+        // --- ЦЕЛИ ---
+        let goalsDataGlobal = {};
+        document.getElementById('goalForm').onsubmit = async (e) => { e.preventDefault(); await push(ref(db, 'goals'), { name: document.getElementById('goalName').value, amount: parseFloat(document.getElementById('goalAmount').value) }); window.closeModalAndReset('newGoalModal', 'goalForm'); };
+        window.deleteGoal = (id) => remove(ref(db, `goals/${id}`));
+
+        function updateGoalsProgress() {
+            let html = '';
+            Object.entries(goalsDataGlobal).forEach(([id, goal]) => {
+                let percent = freeBalance > 0 ? Math.round((freeBalance / goal.amount) * 100) : 0; if (percent > 100) percent = 100;
+                html += `<div class="card !mb-3 !p-5 relative overflow-hidden group"><button type="button" onclick="deleteGoal('${id}')" class="absolute top-4 right-4 text-gray-300 hover:text-red-500 transition-colors">✖</button><p class="font-extrabold text-[15px] text-gray-900 mb-2 pr-6">${goal.name}</p><div class="flex justify-between text-[10px] font-bold text-gray-400 mb-3 uppercase"><span>Накоплено: <span class="text-green-600">${freeBalance > 0 ? freeBalance.toLocaleString() : 0} ₽</span></span><span>Цель: ${goal.amount.toLocaleString()} ₽</span></div><div class="w-full bg-gray-100 rounded-full h-3 overflow-hidden"><div class="bg-gradient-to-r from-green-400 to-green-500 h-3 rounded-full transition-all duration-1000" style="width: ${percent}%"></div></div></div>`;
+            });
+            document.getElementById('goalsList').innerHTML = html || '<p class="text-xs text-center text-gray-400 py-4">Целей пока нет</p>';
+        }
+        onValue(ref(db, 'goals'), (snapshot) => { goalsDataGlobal = snapshot.val() || {}; updateGoalsProgress(); });
 
     </script>
 </body>
