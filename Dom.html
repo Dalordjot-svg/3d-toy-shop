@@ -66,7 +66,10 @@
                     <button onclick="openModal('topupModal')" class="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition-colors border border-white/30">Пополнить ↑</button>
                     <button onclick="openModal('withdrawModal')" class="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition-colors border border-white/30">Вывести ↓</button>
                 </div>
-                <button onclick="openModal('backupModal')" class="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1.5 rounded-xl transition-colors">💾 Бэкапы</button>
+                <div class="flex gap-2">
+                    <button onclick="openModal('workersModal')" class="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1.5 rounded-xl transition-colors">👨‍💼 Сотрудники</button>
+                    <button onclick="openModal('backupModal')" class="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1.5 rounded-xl transition-colors">💾 Бэкапы</button>
+                </div>
             </div>
         </div>
         <div>
@@ -76,6 +79,18 @@
     </div>
 
     <div id="tab-home" class="tab-content active pt-0">
+        <!-- Уведомление о новых спорах -->
+        <div id="disputeAlert" class="bg-yellow-50 border border-yellow-200 p-4 rounded-[24px] mb-4 flex justify-between items-center hidden shadow-sm cursor-pointer hover:scale-[0.98] transition-transform" onclick="openModal('workersModal')">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-600 text-xl">⚠️</div>
+                <div>
+                    <p class="text-[10px] text-yellow-600 font-bold uppercase tracking-wider mb-0.5">Спор по штрафу</p>
+                    <h3 class="text-sm font-bold text-yellow-900">Ожидают решения: <span id="disputeAlertCount">0</span></h3>
+                </div>
+            </div>
+            <div class="text-yellow-600 font-bold">❯</div>
+        </div>
+
         <div id="debtAlert" class="bg-red-50 border border-red-100 p-4 rounded-[24px] mb-4 flex justify-between items-center hidden shadow-sm cursor-pointer hover:scale-[0.98] transition-transform" onclick="if(window.closestDebtId) window.goToDebt(window.closestDebtId)">
             <div>
                 <p class="text-[10px] text-red-500 font-bold uppercase tracking-wider mb-1">Ближайший платеж</p>
@@ -263,6 +278,63 @@
         </div>
     </div>
 
+    <!-- Детали операции (Инкассация от курьера) -->
+    <div id="recordDetailsModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[11000] p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-[24px] p-6 w-full max-w-md shadow-2xl transform transition-transform scale-95 overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-center mb-4 shrink-0">
+                <h3 class="text-xl font-extrabold text-gray-900" id="rdTitle">Детали операции</h3>
+                <button onclick="closeModal('recordDetailsModal')" class="text-gray-400 hover:text-gray-700 font-bold text-xl">&times;</button>
+            </div>
+            <div class="overflow-y-auto flex-1 pr-2 space-y-4 scrollbar-hide">
+                <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    <p class="text-[10px] text-gray-400 uppercase font-bold mb-1 tracking-wider">Основная информация</p>
+                    <p class="text-sm font-bold text-gray-900 mb-1" id="rdMachine">Автомат</p>
+                    <p class="text-xs text-gray-600 mb-1" id="rdWorker">Сотрудник: -</p>
+                    <p class="text-xs text-gray-500 mb-2" id="rdDate">Дата</p>
+                    <div id="rdAmountBox" class="text-lg font-extrabold text-green-600"></div>
+                </div>
+                <div id="rdPhotosBox" class="space-y-3 hidden"></div>
+            </div>
+            <div class="pt-4 border-t border-gray-100 mt-2 shrink-0">
+                <button id="deleteRecordBtn" class="w-full py-3.5 bg-red-50 text-red-600 font-bold rounded-xl border border-red-100 hover:bg-red-100 transition-colors">🗑 Отменить операцию</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Выписать штраф -->
+    <div id="issueFineModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[11000] p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-[24px] p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95">
+            <h3 class="text-xl font-extrabold mb-1 text-gray-900">Выписать штраф</h3>
+            <p class="text-xs text-gray-500 mb-4">Сумма будет вычтена из баланса курьера</p>
+            <form id="issueFineForm" class="space-y-4">
+                <input type="text" id="fineReason" placeholder="Причина (например, недостача 500р)" required class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none font-bold text-sm">
+                <input type="number" id="fineAmount" placeholder="Сумма (₽)" required class="w-full p-4 bg-red-50 border border-red-200 rounded-xl outline-none font-extrabold text-xl text-red-600">
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeModal('issueFineModal')" class="flex-1 py-3.5 bg-gray-100 text-gray-700 font-bold rounded-xl">Отмена</button>
+                    <button type="submit" class="flex-[1.5] py-3.5 bg-red-600 text-white font-bold rounded-xl shadow-md">Выписать</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Рассмотрение спора по штрафу -->
+    <div id="disputeAdminModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[11500] p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-[24px] p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95">
+            <h3 class="text-lg font-extrabold mb-1 text-gray-900">Спор по штрафу</h3>
+            <p class="text-xs text-gray-500 mb-4" id="daReason">Причина</p>
+            <div class="bg-red-50 text-red-600 font-extrabold text-xl p-3 rounded-xl text-center mb-4" id="daAmount">-0 ₽</div>
+            <p class="text-[10px] font-bold text-gray-400 uppercase mb-1">Оправдание курьера</p>
+            <p class="text-sm text-gray-800 bg-gray-50 p-3 rounded-xl mb-4 border border-gray-100" id="daText"></p>
+            <p class="text-[10px] font-bold text-gray-400 uppercase mb-1" id="daPhotoLabel">Доказательство</p>
+            <a href="#" target="_blank" id="daPhotoLink"><img id="daPhoto" class="w-full h-32 object-cover rounded-xl mb-6 border border-gray-200"></a>
+            <div class="flex gap-2">
+                <button id="daRejectBtn" class="flex-1 py-3 bg-gray-100 text-gray-700 font-bold text-xs rounded-xl hover:bg-gray-200">Отклонить (Оставить)</button>
+                <button id="daAcceptBtn" class="flex-1 py-3 bg-green-500 text-white font-bold text-xs rounded-xl shadow-md hover:bg-green-600">Принять (Отменить)</button>
+            </div>
+            <button onclick="closeModal('disputeAdminModal')" class="w-full py-3 bg-white text-gray-400 font-bold text-xs mt-2">Закрыть</button>
+        </div>
+    </div>
+
     <div id="resetModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[10000] p-4 backdrop-blur-sm transition-opacity">
         <div class="bg-white rounded-[24px] p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95 text-center">
             <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">⚠️</div>
@@ -309,6 +381,72 @@
             
             <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Сохраненные копии</h4>
             <div id="backupsList" class="space-y-2 max-h-[40vh] overflow-y-auto pr-1"><p class="text-xs text-gray-400 text-center py-2">Копий пока нет</p></div>
+        </div>
+    </div>
+
+    <!-- Панель Сотрудников -->
+    <div id="workersModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[10000] p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-[24px] p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95">
+            <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-extrabold text-gray-900">Сотрудники</h3><button onclick="closeModal('workersModal')" class="text-gray-400 font-bold text-xl">&times;</button></div>
+            <button onclick="closeModal('workersModal'); openModal('addWorkerModal')" class="w-full bg-blue-50 text-blue-600 font-bold py-3 rounded-xl mb-4 text-sm border border-blue-100 hover:bg-blue-100 transition-colors">+ Добавить сотрудника</button>
+            <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Список персонала</h4>
+            <div id="workersList" class="space-y-2 max-h-[40vh] overflow-y-auto pr-1"><p class="text-xs text-gray-400 text-center py-2">Нет сотрудников</p></div>
+        </div>
+    </div>
+
+    <!-- Профиль сотрудника (Редактирование и статистика) -->
+    <div id="workerProfileModal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-[10010] p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-[24px] p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95">
+            <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-extrabold text-gray-900">Профиль курьера</h3><button onclick="closeModal('workerProfileModal')" class="text-gray-400 font-bold text-xl">&times;</button></div>
+            <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-4 text-center">
+                <p class="text-[10px] text-blue-500 uppercase tracking-wider font-bold mb-1">Баланс (Заработано)</p>
+                <p class="text-2xl font-extrabold text-blue-700" id="wpBalance">0 ₽</p>
+            </div>
+            <form id="editWorkerForm" class="space-y-3">
+                <input type="hidden" id="wpId">
+                <input type="text" id="wpFirstName" placeholder="Имя" required class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none font-medium text-sm">
+                <input type="text" id="wpLastName" placeholder="Фамилия" required class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none font-medium text-sm">
+                <input type="tel" id="wpPhone" placeholder="Номер телефона" required class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none font-medium text-sm">
+                <div class="flex gap-2 pt-2 pb-4"><button type="submit" class="flex-1 py-3 bg-gray-800 text-white font-bold rounded-xl shadow-md text-sm">Сохранить данные</button></div>
+            </form>
+            
+            <div class="flex justify-between items-center mt-4 mb-2 border-t border-gray-100 pt-4">
+                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Штрафы и недостачи</h4>
+                <button onclick="openIssueFineModal()" class="text-[10px] bg-red-50 text-red-600 font-bold px-2 py-1 rounded-lg">Выписать штраф</button>
+            </div>
+            <div id="wpFinesList" class="space-y-2 max-h-[20vh] overflow-y-auto pr-1 mb-4"></div>
+
+            <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 border-t border-gray-100 pt-4">История операций сотрудника</h4>
+            <div id="wpHistoryList" class="space-y-2 max-h-[30vh] overflow-y-auto pr-1"></div>
+        </div>
+    </div>
+
+    <!-- Добавление Сотрудника -->
+    <div id="addWorkerModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[10000] p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-[24px] p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95">
+            <h3 class="text-xl font-extrabold mb-1 text-gray-900">Новый сотрудник</h3>
+            <p class="text-xs text-gray-500 mb-5">Создание индивидуального доступа</p>
+            <form id="addWorkerForm" class="space-y-3">
+                <input type="text" id="workerFirstName" placeholder="Имя" required class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none font-medium text-sm">
+                <input type="text" id="workerLastName" placeholder="Фамилия" required class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none font-medium text-sm">
+                <input type="tel" id="workerPhone" placeholder="Номер телефона" required class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none font-medium text-sm">
+                <div class="flex gap-3 pt-3">
+                    <button type="button" onclick="closeModalAndReset('addWorkerModal', 'addWorkerForm')" class="flex-1 py-3.5 bg-gray-100 text-gray-700 font-bold rounded-xl">Отмена</button>
+                    <button type="submit" class="flex-[2] py-3.5 bg-blue-600 text-white font-bold rounded-xl shadow-md">Создать</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- QR код Сотрудника -->
+    <div id="workerQrModal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-[10000] p-4 backdrop-blur-md transition-opacity">
+        <div class="bg-white rounded-[28px] p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95 overflow-hidden text-center">
+            <h3 class="text-xl font-extrabold text-gray-900 leading-tight mb-1" id="wqName">Имя</h3>
+            <p class="text-xs text-gray-500 font-medium mb-4">Отсканируйте код или отправьте ссылку сотруднику</p>
+            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 mb-4 inline-block"><div id="workerQrDisplay" class="mx-auto bg-white p-2 rounded-xl border border-gray-200"></div></div>
+            <input type="text" id="workerLinkInput" readonly class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-xs text-center text-gray-500 mb-4 outline-none">
+            <button onclick="copyWorkerLink()" class="w-full py-3.5 bg-blue-600 text-white font-bold rounded-xl mb-2 shadow-md">📋 Скопировать ссылку</button>
+            <button onclick="closeModal('workerQrModal')" class="w-full py-3 bg-white text-gray-500 font-bold rounded-xl">Закрыть</button>
         </div>
     </div>
 
@@ -765,6 +903,8 @@
         let overallChartInstance = null; let expensePieChartInstance = null; let maChartInstance = null;
         let todosDataGlobal = {};
         let currentMachineAnalyticsId = null;
+        let workersDataGlobal = {};
+        let lastNotificationTime = Date.now();
 
         // --- UI УТИЛИТЫ ---
         window.showToast = (msg, type = 'success') => {
@@ -794,8 +934,10 @@
         // Постоянное слежение за геопозицией для обновления расстояний
         if (navigator.geolocation) {
             navigator.geolocation.watchPosition(pos => {
-                userLat = pos.coords.latitude; userLng = pos.coords.longitude;
-                renderPointsList(); // Перерисовываем список точек с новой дистанцией
+                if(Math.abs(userLat - pos.coords.latitude) > 0.001 || Math.abs(userLng - pos.coords.longitude) > 0.001) {
+                    userLat = pos.coords.latitude; userLng = pos.coords.longitude;
+                    renderPointsList(); // Перерисовываем список точек с новой дистанцией
+                }
             }, err => console.log('Geo error', err), { enableHighAccuracy: true });
         }
 
@@ -1083,7 +1225,7 @@
         function recalculateBalance() { freeBalance = totalIncomeGlobal - totalExpensesGlobal; document.getElementById('totalBusinessAccount').textContent = freeBalance.toLocaleString() + ' ₽'; }
         onValue(ref(db, 'expenses'), (snapshot) => { 
             totalExpensesGlobal = 0; const data = snapshot.val() || {}; 
-            allExpensesGlobal = Object.values(data).map(e => ({...e, isExpense: true}));
+            allExpensesGlobal = Object.entries(data).map(([id, e]) => ({id, ...e, isExpense: true}));
             allExpensesGlobal.forEach(exp => { totalExpensesGlobal += exp.amount; }); 
             recalculateBalance(); updateGoalsProgress(); renderHistory(); renderAnalyticsCharts();
         });
@@ -1271,6 +1413,15 @@
             totalIncomeGlobal = 0; machinesStats = {}; const weeklyStats = {}; let recentHtml = '';
             const oneWeekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
 
+            // Проверка новых операций от курьеров для отправки Push-уведомлений
+            recordsArray.forEach(rec => {
+                if (rec.timestamp > lastNotificationTime && rec.workerName) {
+                    if (rec.type === 'income') sendPushNotification("✅ Инкассация завершена", `Курьер ${rec.workerName} собрал ${rec.revenue} ₽ с автомата "${rec.machineName}"`);
+                    if (rec.type === 'refill') sendPushNotification("📦 Загрузка товара", `Курьер ${rec.workerName} пополнил "${rec.machineName}" на ${rec.added} шт.`);
+                }
+            });
+            if (recordsArray.length > 0 && recordsArray[0].timestamp > lastNotificationTime) { lastNotificationTime = recordsArray[0].timestamp; }
+
             recordsArray.forEach((rec, i) => {
                 const isIncome = rec.type === 'income';
                 if(isIncome) {
@@ -1390,12 +1541,61 @@
                 else if(rec.type === 'installment') { typeLabel = '💳 Платеж (Рассрочка)'; valHtml = `<span class="text-purple-600 font-bold text-sm">-${rec.amount} ₽</span>`; bgClass = 'bg-purple-50/20'; }
                 else if(rec.type === 'topup') { typeLabel = '📥 Вложение'; valHtml = `<span class="text-green-600 font-bold text-sm">+${rec.amount} ₽</span>`; bgClass = 'bg-green-50/20'; title = `Пополнение (${rec.method || 'Личные средства'})`; }
                 
-                html += `<div class="card !mb-2 !p-3 flex justify-between items-center ${bgClass} border border-gray-100">
+                html += `<div class="card !mb-2 !p-3 flex justify-between items-center ${bgClass} border border-gray-100 cursor-pointer hover:shadow-md" onclick="openRecordDetails('${rec.id}', ${rec.isExpense ? 'true' : 'false'})">
                     <div><p class="font-bold text-[13px] text-gray-900 mb-0.5">${title}</p><p class="text-[10px] text-gray-500">${new Date(rec.timestamp).toLocaleString('ru-RU', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'})} • ${typeLabel}</p></div>
                     <div class="text-right">${valHtml}</div>
                 </div>`;
             });
             document.getElementById('fullHistoryList').innerHTML = html || '<p class="text-xs text-center text-gray-400 py-4">Операций не найдено</p>';
+        };
+
+        window.openRecordDetails = (id, isExpense) => {
+            const rec = isExpense ? allExpensesGlobal.find(r => r.id === id) : allRecordsGlobal.find(r => r.id === id);
+            if(!rec) return;
+            document.getElementById('rdMachine').textContent = rec.machineName || rec.note || 'Операция';
+            document.getElementById('rdWorker').textContent = `Сотрудник: ${rec.workerName || 'Владелец'}`;
+            document.getElementById('rdDate').textContent = new Date(rec.timestamp).toLocaleString('ru-RU');
+            
+            let valHtml = '';
+            if(rec.type === 'income') valHtml = `Собрано: ${rec.revenue} ₽ <br><span class="text-xs text-gray-500">Заработано курьером: ${rec.workerEarnings || 0} ₽</span>`;
+            else if(rec.type === 'refill') valHtml = `<span class="text-blue-600">Пополнено: ${rec.added} шт</span>`;
+            else if(rec.amount) valHtml = `Сумма: ${rec.amount} ₽`;
+            else if(rec.stock !== undefined) valHtml = `Остаток: ${rec.stock} шт`;
+            document.getElementById('rdAmountBox').innerHTML = valHtml;
+
+            const pBox = document.getElementById('rdPhotosBox');
+            if(rec.photos || rec.workerCoords) {
+                let phtml = '<p class="text-[10px] text-gray-400 uppercase font-bold mb-2 tracking-wider mt-4">Отчет курьера</p><div class="grid grid-cols-2 gap-2">';
+                if(rec.photos && rec.photos.before) phtml += `<div><p class="text-[9px] text-gray-500 mb-1">До сбора</p><a href="${rec.photos.before}" target="_blank"><img src="${rec.photos.before}" class="w-full h-24 object-cover rounded-xl border border-gray-200"></a></div>`;
+                if(rec.photos && rec.photos.after) phtml += `<div><p class="text-[9px] text-gray-500 mb-1">После сбора</p><a href="${rec.photos.after}" target="_blank"><img src="${rec.photos.after}" class="w-full h-24 object-cover rounded-xl border border-gray-200"></a></div>`;
+                if(rec.photos && rec.photos.machine) phtml += `<div class="col-span-2"><p class="text-[9px] text-gray-500 mb-1">Автомат</p><a href="${rec.photos.machine}" target="_blank"><img src="${rec.photos.machine}" class="w-full h-32 object-cover rounded-xl border border-gray-200"></a></div>`;
+                
+                if(rec.workerCoords) {
+                    const [lat, lng] = rec.workerCoords.split(',');
+                    phtml += `<div class="col-span-2 mt-1"><p class="text-[9px] text-gray-500 mb-1">Геопозиция отправки</p><a href="https://yandex.ru/maps/?pt=${lng},${lat}&z=16&l=map" target="_blank" class="w-full py-3 bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold rounded-xl text-xs flex items-center justify-center transition-colors border border-blue-100">📍 Посмотреть на карте</a></div>`;
+                }
+                
+                pBox.innerHTML = phtml + '</div>'; pBox.classList.remove('hidden');
+            } else { pBox.innerHTML = ''; pBox.classList.add('hidden'); }
+            
+            document.getElementById('deleteRecordBtn').onclick = () => deleteOperation(id, isExpense);
+            openModal('recordDetailsModal');
+        };
+
+        window.deleteOperation = (id, isExpense) => {
+            customConfirm("Вы уверены, что хотите отменить эту операцию? Это действие нельзя отменить.", async () => {
+                closeModal('recordDetailsModal');
+                if (isExpense) { await remove(ref(db, `expenses/${id}`)); } 
+                else {
+                    const rec = allRecordsGlobal.find(r => r.id === id);
+                    if (rec && rec.workerId && rec.workerEarnings) {
+                        const wSnap = await get(ref(db, `workers/${rec.workerId}/balance`));
+                        await set(ref(db, `workers/${rec.workerId}/balance`), (wSnap.val() || 0) - rec.workerEarnings);
+                    }
+                    await remove(ref(db, `records/${id}`));
+                }
+                showToast("Операция отменена", "info");
+            });
         };
 
         // --- ЭКСПОРТ В CSV ---
@@ -1469,6 +1669,115 @@
             window.closeModalAndReset('topupModal', 'topupForm'); 
             showToast('Баланс успешно пополнен'); 
         };
+
+        // --- СОТРУДНИКИ ---
+        document.getElementById('addWorkerForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const fName = document.getElementById('workerFirstName').value;
+            const lName = document.getElementById('workerLastName').value;
+            const phone = document.getElementById('workerPhone').value;
+            await push(ref(db, 'workers'), { firstName: fName, lastName: lName, phone: phone, balance: 0, created: Date.now() });
+            closeModalAndReset('addWorkerModal', 'addWorkerForm');
+            showToast('Сотрудник добавлен');
+        };
+
+        window.openWorkerQr = (id) => {
+            const worker = workersDataGlobal[id]; if(!worker) return;
+            document.getElementById('wqName').textContent = `${worker.firstName} ${worker.lastName}`;
+            
+            let currentUrl = window.location.href.split('?')[0]; 
+            let baseUrl = currentUrl.substring(0, currentUrl.lastIndexOf('/'));
+            let link = `${baseUrl}/dop.html?id=${id}`;
+            
+            document.getElementById('workerLinkInput').value = link;
+            document.getElementById('workerQrDisplay').innerHTML = '';
+            new QRCode(document.getElementById('workerQrDisplay'), { text: link, width: 150, height: 150, colorDark: "#000", colorLight: "#fff", correctLevel: QRCode.CorrectLevel.H });
+            
+            openModal('workerQrModal');
+        };
+
+        window.copyWorkerLink = () => { const input = document.getElementById('workerLinkInput'); input.select(); document.execCommand('copy'); showToast('Ссылка скопирована!'); };
+        window.deleteWorker = (id) => { customConfirm("Удалить доступ для этого сотрудника?", () => { remove(ref(db, `workers/${id}`)); showToast("Сотрудник удален"); }); };
+
+        // --- СИСТЕМА ШТРАФОВ ---
+        window.openIssueFineModal = () => { document.getElementById('issueFineForm').reset(); openModal('issueFineModal'); };
+        document.getElementById('issueFineForm').onsubmit = async (e) => {
+            e.preventDefault(); const wId = document.getElementById('wpId').value;
+            const amount = parseFloat(document.getElementById('fineAmount').value);
+            const reason = document.getElementById('fineReason').value;
+            await push(ref(db, `workers/${wId}/fines`), { amount, reason, status: 'active', timestamp: Date.now() });
+            
+            const wSnap = await get(ref(db, `workers/${wId}/balance`)); const curBal = wSnap.val() || 0;
+            await set(ref(db, `workers/${wId}/balance`), curBal - amount);
+            closeModal('issueFineModal'); showToast("Штраф выписан");
+        };
+
+        window.openDisputeAdmin = (wId, fineId) => {
+            const fine = workersDataGlobal[wId].fines[fineId];
+            document.getElementById('daReason').textContent = fine.reason;
+            document.getElementById('daAmount').textContent = `-${fine.amount} ₽`;
+            document.getElementById('daText').textContent = fine.disputeText || 'Нет текста';
+            if (fine.disputePhoto) {
+                document.getElementById('daPhoto').src = fine.disputePhoto; document.getElementById('daPhotoLink').href = fine.disputePhoto;
+                document.getElementById('daPhoto').classList.remove('hidden'); document.getElementById('daPhotoLabel').classList.remove('hidden');
+            } else {
+                document.getElementById('daPhoto').classList.add('hidden'); document.getElementById('daPhotoLabel').classList.add('hidden');
+            }
+            document.getElementById('daAcceptBtn').onclick = () => resolveDispute(wId, fineId, true, fine.amount);
+            document.getElementById('daRejectBtn').onclick = () => resolveDispute(wId, fineId, false);
+            openModal('disputeAdminModal');
+        };
+
+        window.resolveDispute = async (wId, fineId, isAccepted, amount = 0) => {
+            if (isAccepted) {
+                const wSnap = await get(ref(db, `workers/${wId}/balance`)); const curBal = wSnap.val() || 0;
+                await set(ref(db, `workers/${wId}/balance`), curBal + amount);
+                await update(ref(db, `workers/${wId}/fines/${fineId}`), { status: 'canceled' }); showToast("Штраф отменен, баланс возвращен", "success");
+            } else {
+                await update(ref(db, `workers/${wId}/fines/${fineId}`), { status: 'rejected' }); showToast("Спор отклонен, штраф оставлен", "info");
+            }
+            closeModal('disputeAdminModal');
+        };
+
+        window.openWorkerProfile = (id) => {
+            const w = workersDataGlobal[id]; if(!w) return;
+            document.getElementById('wpId').value = id; document.getElementById('wpFirstName').value = w.firstName; document.getElementById('wpLastName').value = w.lastName; document.getElementById('wpPhone').value = w.phone;
+            document.getElementById('wpBalance').textContent = (w.balance || 0).toLocaleString() + ' ₽';
+            
+            let finesHtml = '';
+            if (w.fines) {
+                Object.entries(w.fines).sort((a,b)=>b[1].timestamp - a[1].timestamp).forEach(([fId, f]) => {
+                    let statusBadge = '';
+                    if (f.status === 'active') statusBadge = '<span class="text-red-500 text-[10px] font-bold">Активен</span>';
+                    else if (f.status === 'disputed') statusBadge = `<button onclick="openDisputeAdmin('${id}', '${fId}')" class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-[10px] font-bold">⚠️ Оспорено (Смотреть)</button>`;
+                    else if (f.status === 'canceled') statusBadge = '<span class="text-green-500 text-[10px] font-bold">Отменен</span>';
+                    else if (f.status === 'rejected') statusBadge = '<span class="text-gray-500 text-[10px] font-bold">Отклонено</span>';
+                    finesHtml += `<div class="bg-gray-50 p-3 rounded-xl border border-gray-100 mb-2"><div class="flex justify-between mb-1"><p class="text-sm font-bold text-gray-900">${f.reason}</p><p class="text-sm font-extrabold text-red-600">-${f.amount}₽</p></div><div class="flex justify-between items-center"><p class="text-[10px] text-gray-400">${new Date(f.timestamp).toLocaleDateString()}</p>${statusBadge}</div></div>`;
+                });
+            }
+            document.getElementById('wpFinesList').innerHTML = finesHtml || '<p class="text-xs text-center text-gray-400 py-2">Нет штрафов</p>';
+
+            let html = '';
+            const wRecords = allRecordsGlobal.filter(r => r.workerId === id).sort((a,b)=>b.timestamp - a.timestamp);
+            wRecords.forEach(r => {
+                let typeLabel = r.type === 'income' ? `💰 Инкассация (+${r.revenue}₽)` : (r.type === 'refill' ? `📦 Пополнение (+${r.added}шт)` : '⚙️ Ревизия');
+                html += `<div class="bg-gray-50 p-3 rounded-xl border border-gray-100 cursor-pointer hover:bg-gray-100" onclick="openRecordDetails('${r.id}', false)">
+                    <div class="flex justify-between items-start"><p class="text-sm font-bold text-gray-900">${r.machineName}</p><p class="text-[10px] text-gray-500">${new Date(r.timestamp).toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'})}</p></div>
+                    <p class="text-xs font-bold text-blue-600 mt-1">${typeLabel}</p>
+                </div>`;
+            });
+            document.getElementById('wpHistoryList').innerHTML = html || '<p class="text-xs text-center text-gray-400 py-2">Нет операций</p>';
+            
+            openModal('workerProfileModal');
+        };
+
+        document.getElementById('editWorkerForm').onsubmit = async (e) => { e.preventDefault(); const id = document.getElementById('wpId').value; await update(ref(db, `workers/${id}`), { firstName: document.getElementById('wpFirstName').value, lastName: document.getElementById('wpLastName').value, phone: document.getElementById('wpPhone').value }); closeModal('workerProfileModal'); showToast('Данные обновлены'); };
+
+        onValue(ref(db, 'workers'), (snapshot) => {
+            workersDataGlobal = snapshot.val() || {}; let html = '';
+            Object.entries(workersDataGlobal).forEach(([id, w]) => { html += `<div class="flex items-center justify-between bg-gray-50 p-3 rounded-xl border border-gray-100 mb-2 cursor-pointer hover:bg-gray-100" onclick="openWorkerProfile('${id}')"><div><p class="text-sm font-bold text-gray-900">${w.firstName} ${w.lastName}</p><p class="text-[10px] text-gray-500 font-bold text-green-600 mt-0.5">Баланс: ${(w.balance || 0).toLocaleString()} ₽</p></div><div class="flex gap-2" onclick="event.stopPropagation()"><button onclick="openWorkerQr('${id}')" class="bg-blue-100 text-blue-700 w-8 h-8 rounded-lg flex items-center justify-center text-sm shadow-sm">📱</button><button onclick="deleteWorker('${id}')" class="bg-red-50 text-red-500 w-8 h-8 rounded-lg flex items-center justify-center text-sm">🗑</button></div></div>`; });
+            document.getElementById('workersList').innerHTML = html || '<p class="text-xs text-gray-400 text-center py-2">Нет сотрудников</p>';
+        });
 
         // --- СКЛАД ---
         window.updateQty = (id, currentQty, delta) => { const newQty = currentQty + delta; if(newQty < 0) remove(ref(db, `warehouse/${id}`)); else set(ref(db, `warehouse/${id}/qty`), newQty); };
