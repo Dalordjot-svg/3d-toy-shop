@@ -9,6 +9,8 @@
     <!-- Библиотеки для QR -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
+    <!-- Библиотека для графиков (Аналитика) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
@@ -83,6 +85,17 @@
             </div>
         </div>
 
+        <!-- Виджет Налога -->
+        <div id="taxWidget" class="card !mb-5 bg-gradient-to-br from-amber-50 to-orange-50 border border-orange-100 relative">
+            <button onclick="openModal('taxSettingsModal')" class="absolute top-3 right-3 text-orange-400 hover:text-orange-600 bg-white rounded-full w-7 h-7 shadow-sm text-xs flex items-center justify-center">⚙️</button>
+            <p class="text-[10px] text-orange-600 font-bold uppercase tracking-wider mb-1">Налог к оплате (<span id="taxRateLabel">6</span>%)</p>
+            <div class="flex justify-between items-end">
+                <div><h2 class="text-2xl font-extrabold text-gray-900" id="taxTotalDue">0 ₽</h2><p class="text-[10px] text-gray-500 font-medium mt-1">Крайний срок: <span id="taxDueDateLabel" class="font-bold text-gray-700">-</span></p><p id="taxPenaltyLabel" class="text-[10px] text-red-500 font-bold mt-0.5 hidden">Вкл. пеню: <span id="taxPenaltyAmount">0</span> ₽</p></div>
+                <button onclick="payTax()" class="bg-orange-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm hover:bg-orange-600 transition-colors">Оплатить</button>
+            </div>
+            <div class="w-full bg-orange-200/50 rounded-full h-1 mt-3 overflow-hidden"><div id="taxProgressBar" class="bg-orange-500 h-1 rounded-full transition-all" style="width: 0%"></div></div>
+        </div>
+
         <div class="grid grid-cols-2 gap-3 mb-5">
             <div class="card !mb-0 flex flex-col justify-center">
                 <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Заработано всего</p>
@@ -96,6 +109,12 @@
 
         <h3 class="text-xs font-bold text-gray-400 mb-3 uppercase tracking-wider px-2">Продажи (за 7 дней)</h3>
         <div id="weeklyRatingList" class="space-y-3 mb-6"><p class="text-xs text-center text-gray-400 py-4">Загрузка...</p></div>
+
+        <div class="flex justify-between items-center px-2 mb-3">
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Задачи на завтра</h3>
+            <button onclick="openModal('newTaskModal')" class="text-blue-600 text-[10px] font-bold uppercase bg-blue-50 px-3 py-1.5 rounded-lg shadow-sm hover:bg-blue-100 transition-colors">+ Добавить</button>
+        </div>
+        <div id="todoList" class="space-y-2 mb-6"><p class="text-xs text-center text-gray-400 py-2">Нет задач</p></div>
 
         <h3 class="text-xs font-bold text-gray-400 mb-3 uppercase tracking-wider px-2">Последние инкассации</h3>
         <div id="recentActivity" class="space-y-3"><p class="text-xs text-center text-gray-400 py-4">Загрузка...</p></div>
@@ -169,11 +188,32 @@
         </div>
 
         <div id="sub-analytics" class="sub-tab active space-y-4 pb-24">
+            <div class="flex justify-between items-center mb-1">
+                <h2 class="text-lg font-bold text-gray-900">Общая аналитика</h2>
+                <button onclick="openModal('unplannedExpenseModal')" class="bg-red-50 text-red-600 text-xs font-bold px-3 py-2 rounded-xl shadow-sm border border-red-100">+ Расход</button>
+            </div>
             <div id="bestMachineCard" class="bg-gradient-to-br from-green-500 to-emerald-600 text-white p-5 rounded-[24px] shadow-lg shadow-green-200/50 hidden">
                 <div class="flex items-center gap-2 mb-2"><span class="text-xl">🏆</span><p class="text-[10px] font-bold uppercase tracking-wider opacity-90">Лидер продаж</p></div>
                 <h2 class="text-2xl font-extrabold mb-3" id="bestMachineName">-</h2>
             </div>
-            <div id="reportsList" class="space-y-3"><p class="text-xs text-center text-gray-400 py-4">Загрузка...</p></div>
+            
+            <div class="card !p-4 border border-gray-100">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Доход и Расход (7 дней)</h3>
+                    <select id="overallChartType" onchange="renderAnalyticsCharts()" class="text-[10px] bg-gray-50 border border-gray-200 rounded px-1.5 py-1 outline-none font-bold text-gray-600 cursor-pointer"><option value="line">График</option><option value="bar">Гистограмма</option></select>
+                </div>
+                <div class="relative w-full h-48"><canvas id="overallChart"></canvas></div>
+            </div>
+            <div class="card !p-4 border border-gray-100">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Структура расходов</h3>
+                    <select id="expenseChartType" onchange="renderAnalyticsCharts()" class="text-[10px] bg-gray-50 border border-gray-200 rounded px-1.5 py-1 outline-none font-bold text-gray-600 cursor-pointer"><option value="doughnut">Кольцо</option><option value="pie">Сектора</option><option value="polarArea">Полярная</option><option value="bar">Гистограмма</option></select>
+                </div>
+                <div class="relative w-full h-48"><canvas id="expensePieChart"></canvas></div>
+            </div>
+
+            <h3 class="text-xs font-bold text-gray-400 mt-4 uppercase tracking-wider px-1">Аналитика по точкам</h3>
+            <div id="analyticsMachinesList" class="space-y-2"><p class="text-xs text-center text-gray-400 py-4">Загрузка...</p></div>
         </div>
 
         <div id="sub-debts" class="sub-tab pb-24">
@@ -207,7 +247,12 @@
                         <option value="income">Инкассации</option>
                         <option value="refill">Пополнения</option>
                         <option value="audit">Ревизии</option>
+                        <option value="purchase">Закупки</option>
+                        <option value="tax">Налоги</option>
+                        <option value="unplanned">Непредвиденные</option>
+                        <option value="withdrawal">Выводы</option>
                     </select>
+                    <button onclick="exportHistoryCSV()" class="bg-green-50 text-green-700 text-xs font-bold px-3 py-2 rounded-xl shadow-sm border border-green-100 whitespace-nowrap hover:bg-green-100 transition-colors">📥 Экспорт CSV</button>
                 </div>
             </div>
             <div id="fullHistoryList" class="space-y-2"><p class="text-xs text-center text-gray-400 py-4">Загрузка...</p></div>
@@ -276,6 +321,26 @@
         </div>
     </div>
 
+    <!-- Настройки Налога -->
+    <div id="taxSettingsModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[10000] p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-[24px] p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95">
+            <h3 class="text-xl font-extrabold mb-1 text-gray-900">Настройки налогов</h3>
+            <p class="text-xs text-gray-500 mb-4">Параметры для автоматического расчета.</p>
+            <form id="taxSettingsForm" class="space-y-3">
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 pl-1">Ставка (%)</label><input type="number" id="taxSetRate" step="0.1" required class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none font-bold text-sm text-gray-800"></div>
+                    <div><label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 pl-1">Пеня (% в день)</label><input type="number" id="taxSetPenalty" step="0.01" required class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none font-bold text-sm text-gray-800"></div>
+                </div>
+                <div><label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 pl-1">Периодичность оплаты</label><select id="taxSetFreq" class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none font-bold text-sm"><option value="1">Ежемесячно</option><option value="3">Ежеквартально (3 мес)</option><option value="6">Раз в полугодие (6 мес)</option><option value="12">Ежегодно</option></select></div>
+                <div><label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 pl-1">Крайняя дата следующей оплаты</label><input type="date" id="taxSetNextDate" required class="w-full p-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none font-bold text-sm text-gray-800"></div>
+                <div class="flex gap-3 pt-3">
+                    <button type="button" onclick="closeModal('taxSettingsModal')" class="flex-1 py-3.5 bg-gray-100 text-gray-700 font-bold rounded-xl">Отмена</button>
+                    <button type="submit" class="flex-[2] py-3.5 bg-orange-500 text-white font-bold rounded-xl shadow-md">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="withdrawModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[10000] p-4 backdrop-blur-sm transition-opacity">
         <div class="bg-white rounded-[24px] p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95">
             <h3 class="text-xl font-extrabold mb-1 text-gray-900">Вывод на себя</h3>
@@ -304,6 +369,38 @@
                     <button type="submit" class="flex-[2] py-3.5 bg-blue-600 text-white font-bold rounded-xl">Купить</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Непредвиденный расход -->
+    <div id="unplannedExpenseModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[10000] p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-[24px] p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95">
+            <h3 class="text-xl font-extrabold mb-1 text-gray-900">Непредвиденный расход</h3>
+            <p class="text-xs text-gray-500 mb-5">Бензин, ремонт, штрафы и т.д.</p>
+            <form id="unplannedExpenseForm" class="space-y-4">
+                <input type="text" id="ueName" placeholder="Назначение (напр. Бензин)" required class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none font-bold text-sm">
+                <input type="number" id="ueAmount" placeholder="Сумма (₽)" required class="w-full p-4 bg-red-50 border border-red-200 rounded-xl outline-none font-extrabold text-xl text-red-600">
+                <div class="flex gap-3 pt-3">
+                    <button type="button" onclick="closeModalAndReset('unplannedExpenseModal', 'unplannedExpenseForm')" class="flex-1 py-3.5 bg-gray-100 text-gray-700 font-bold rounded-xl">Отмена</button>
+                    <button type="submit" class="flex-[2] py-3.5 bg-red-600 text-white font-bold rounded-xl shadow-md">Списать</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Подробная аналитика одной точки -->
+    <div id="machineAnalyticsModal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-[10000] p-4 backdrop-blur-md transition-opacity">
+        <div class="bg-white rounded-[28px] p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95 overflow-hidden">
+            <div class="flex justify-between items-start mb-4">
+                <h3 class="text-xl font-extrabold text-gray-900 leading-tight" id="maName">Название точки</h3>
+                <button onclick="closeModal('machineAnalyticsModal')" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 font-bold text-lg hover:bg-gray-200">&times;</button>
+            </div>
+            <div class="flex justify-between items-center mb-2">
+                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Динамика выручки</h4>
+                <select id="maChartType" onchange="renderMachineChart()" class="text-[10px] bg-gray-50 border border-gray-200 rounded px-1.5 py-1 outline-none font-bold text-gray-600 cursor-pointer"><option value="bar">Гистограмма</option><option value="line">График</option></select>
+            </div>
+            <div class="relative w-full h-40 mb-4 bg-gray-50 rounded-xl p-2 border border-gray-100"><canvas id="maChart"></canvas></div>
+            <div id="maStats" class="grid grid-cols-2 gap-2 text-center"></div>
         </div>
     </div>
 
@@ -592,6 +689,20 @@
         </div>
     </div>
 
+    <!-- Модалка Новой Задачи -->
+    <div id="newTaskModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[10000] p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-[24px] p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95">
+            <h3 class="text-xl font-extrabold mb-1 text-gray-900">Новая задача</h3>
+            <form id="taskForm" class="space-y-4 mt-4">
+                <input type="text" id="taskText" placeholder="Что нужно сделать? (Починить, закупить и т.д.)" required class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none font-medium text-sm">
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeModalAndReset('newTaskModal', 'taskForm')" class="flex-1 py-3.5 bg-gray-100 text-gray-700 font-bold rounded-xl">Отмена</button>
+                    <button type="submit" class="flex-[1.5] py-3.5 bg-blue-600 text-white font-bold rounded-xl shadow-md">Добавить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="bottom-nav">
         <div class="nav-item active" onclick="switchTab('home', this)"><span class="nav-icon">📊</span><span>Сводка</span></div>
         <div class="nav-item" onclick="switchTab('points', this)"><span class="nav-icon">📋</span><span>Точки</span></div>
@@ -621,7 +732,14 @@
         let html5QrCodeScanner = null;
         window.closestDebtId = null;
         let allRecordsGlobal = [];
+        let allExpensesGlobal = [];
         let globalWhThreshold = 200;
+        let taxSettingsGlobal = { rate: 6, penalty: 0.1, freq: 3, nextDate: Date.now() + 7776000000, lastPaid: 0 };
+        let currentTaxBase = 0;
+        let currentTotalTaxDue = 0;
+        let overallChartInstance = null; let expensePieChartInstance = null; let maChartInstance = null;
+        let todosDataGlobal = {};
+        let currentMachineAnalyticsId = null;
 
         // --- UI УТИЛИТЫ ---
         window.showToast = (msg, type = 'success') => {
@@ -778,6 +896,7 @@
             const cabinet = document.getElementById('personalCabinet');
             if(tabId === 'home') { cabinet.style.display = 'block'; setTimeout(() => cabinet.style.opacity = '1', 10); } else { cabinet.style.display = 'none'; cabinet.style.opacity = '0'; }
             if(tabId === 'points') renderPointsList();
+            if(tabId === 'reports') setTimeout(renderAnalyticsCharts, 50);
         };
 
         window.switchSubTab = (subTabId) => {
@@ -786,12 +905,13 @@
             document.getElementById(`sub-${subTabId}`).classList.add('active');
             const btn = document.getElementById(`btn-sub-${subTabId}`);
             btn.classList.remove('text-gray-500'); btn.classList.add('bg-white', 'shadow-sm', 'text-blue-600');
+            if(subTabId === 'analytics') setTimeout(renderAnalyticsCharts, 50);
         };
 
         window.executeFactoryReset = async () => {
             const btn = document.getElementById('resetBtn'); btn.textContent = "Удаление..."; btn.disabled = true;
             try { 
-                const paths = ['machines', 'records', 'warehouse', 'expenses', 'debts', 'goals'];
+                const paths = ['machines', 'records', 'warehouse', 'expenses', 'debts', 'goals', 'todos'];
                 for(let p of paths) await remove(ref(db, p));
                 showToast('Все данные успешно сброшены', 'success'); 
                 setTimeout(() => window.location.reload(), 1000); 
@@ -802,9 +922,155 @@
         onValue(ref(db, 'settings/warehouseThreshold'), (snap) => { globalWhThreshold = snap.val() || 200; document.getElementById('whThresholdInput').value = globalWhThreshold; });
         document.getElementById('warehouseSettingsForm').onsubmit = async (e) => { e.preventDefault(); const val = parseInt(document.getElementById('whThresholdInput').value); await set(ref(db, 'settings/warehouseThreshold'), val); closeModal('warehouseSettingsModal'); showToast('Настройки сохранены'); };
 
+        // --- НАЛОГИ ---
+        onValue(ref(db, 'settings/tax'), snap => {
+            if(snap.exists()) taxSettingsGlobal = snap.val();
+            document.getElementById('taxSetRate').value = taxSettingsGlobal.rate;
+            document.getElementById('taxSetPenalty').value = taxSettingsGlobal.penalty;
+            document.getElementById('taxSetFreq').value = taxSettingsGlobal.freq;
+            if(taxSettingsGlobal.nextDate) {
+                const d = new Date(taxSettingsGlobal.nextDate);
+                document.getElementById('taxSetNextDate').value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+            }
+            renderTaxWidget();
+        });
+
+        document.getElementById('taxSettingsForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const newDate = new Date(document.getElementById('taxSetNextDate').value).getTime();
+            await update(ref(db, 'settings/tax'), { rate: parseFloat(document.getElementById('taxSetRate').value), penalty: parseFloat(document.getElementById('taxSetPenalty').value), freq: parseInt(document.getElementById('taxSetFreq').value), nextDate: newDate, lastPaid: taxSettingsGlobal.lastPaid || 0 });
+            closeModal('taxSettingsModal'); showToast('Настройки налогов обновлены');
+        };
+
+        window.renderTaxWidget = () => {
+            let baseTax = currentTaxBase * (taxSettingsGlobal.rate / 100);
+            let penalty = 0; let now = Date.now(); let daysOverdue = 0;
+            
+            if (now > taxSettingsGlobal.nextDate) {
+                daysOverdue = Math.floor((now - taxSettingsGlobal.nextDate) / (1000 * 60 * 60 * 24));
+                if (daysOverdue > 0) penalty = baseTax * daysOverdue * (taxSettingsGlobal.penalty / 100);
+            }
+
+            currentTotalTaxDue = Math.round((baseTax + penalty) * 100) / 100;
+            document.getElementById('taxTotalDue').textContent = currentTotalTaxDue.toLocaleString() + ' ₽';
+            document.getElementById('taxRateLabel').textContent = taxSettingsGlobal.rate;
+            document.getElementById('taxDueDateLabel').textContent = formatRuDate(new Date(taxSettingsGlobal.nextDate));
+            
+            if (penalty > 0) { document.getElementById('taxPenaltyLabel').classList.remove('hidden'); document.getElementById('taxPenaltyAmount').textContent = Math.round(penalty).toLocaleString(); document.getElementById('taxDueDateLabel').classList.add('text-red-500'); } 
+            else { document.getElementById('taxPenaltyLabel').classList.add('hidden'); document.getElementById('taxDueDateLabel').classList.remove('text-red-500'); }
+            
+            // Progress bar (от начала периода до дедлайна)
+            const periodTotalMs = (taxSettingsGlobal.nextDate - (taxSettingsGlobal.lastPaid || (taxSettingsGlobal.nextDate - taxSettingsGlobal.freq * 30 * 86400000)));
+            const elapsedMs = now - (taxSettingsGlobal.lastPaid || (taxSettingsGlobal.nextDate - taxSettingsGlobal.freq * 30 * 86400000));
+            document.getElementById('taxProgressBar').style.width = Math.min(100, Math.max(0, (elapsedMs / periodTotalMs) * 100)) + '%';
+        };
+
+        window.payTax = () => {
+            if (currentTotalTaxDue <= 0) return showToast('Нет налога к оплате', 'info');
+            customConfirm(`Оплатить налог в размере <b>${currentTotalTaxDue} ₽</b>?<br>Сумма спишется со свободного баланса.`, async () => {
+                if (freeBalance < currentTotalTaxDue) return showToast('Недостаточно средств на балансе', 'error');
+                await push(ref(db, 'expenses'), { amount: currentTotalTaxDue, type: 'tax', note: 'Оплата налога', timestamp: Date.now() });
+                let d = new Date(taxSettingsGlobal.nextDate || Date.now()); d.setMonth(d.getMonth() + parseInt(taxSettingsGlobal.freq));
+                await update(ref(db, 'settings/tax'), { lastPaid: Date.now(), nextDate: d.getTime() });
+                showToast('Налог успешно оплачен');
+            });
+        };
+
+        // --- АНАЛИТИКА И ГРАФИКИ ---
+        window.renderAnalyticsCharts = () => {
+            if(!document.getElementById('sub-analytics').classList.contains('active')) return;
+            
+            const last7Days = [...Array(7)].map((_, i) => {
+                const d = new Date(); d.setDate(d.getDate() - i);
+                return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+            }).reverse();
+
+            let revByDay = {}; let expByDay = {};
+            last7Days.forEach(d => { revByDay[d] = 0; expByDay[d] = 0; });
+
+            allRecordsGlobal.forEach(r => {
+                if(r.type === 'income') { const dStr = new Date(r.timestamp).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }); if(revByDay[dStr] !== undefined) revByDay[dStr] += r.revenue; }
+            });
+            allExpensesGlobal.forEach(e => {
+                const dStr = new Date(e.timestamp).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }); if(expByDay[dStr] !== undefined) expByDay[dStr] += e.amount;
+            });
+
+            const overallType = document.getElementById('overallChartType').value;
+            const ctxLine = document.getElementById('overallChart').getContext('2d');
+            if(overallChartInstance) overallChartInstance.destroy();
+            overallChartInstance = new Chart(ctxLine, {
+                type: overallType,
+                data: { labels: last7Days, datasets: [ { label: 'Доход', data: last7Days.map(d=>revByDay[d]), borderColor: '#16a34a', backgroundColor: '#16a34a', tension: 0.4 }, { label: 'Расход', data: last7Days.map(d=>expByDay[d]), borderColor: '#dc2626', backgroundColor: '#dc2626', tension: 0.4 } ] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: {boxWidth: 10, font:{size: 10}} } }, scales: { y: { beginAtZero: true, ticks: {font: {size: 9}} }, x: { ticks: {font: {size: 9}} } } }
+            });
+
+            let expSummary = { 'Закупки': 0, 'Налоги': 0, 'Рассрочки': 0, 'Выводы': 0, 'Прочее': 0 };
+            allExpensesGlobal.forEach(e => {
+                if(e.type === 'purchase') expSummary['Закупки'] += e.amount; else if(e.type === 'tax') expSummary['Налоги'] += e.amount; else if(e.type === 'installment') expSummary['Рассрочки'] += e.amount; else if(e.type === 'withdrawal') expSummary['Выводы'] += e.amount; else expSummary['Прочее'] += e.amount;
+            });
+
+            const expType = document.getElementById('expenseChartType').value;
+            const ctxPie = document.getElementById('expensePieChart').getContext('2d');
+            if(expensePieChartInstance) expensePieChartInstance.destroy();
+            expensePieChartInstance = new Chart(ctxPie, {
+                type: expType,
+                data: { labels: Object.keys(expSummary), datasets: [{ data: Object.values(expSummary), backgroundColor: ['#3b82f6', '#f97316', '#a855f7', '#14b8a6', '#ef4444'], borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } } } }
+            });
+        };
+
+        window.openMachineAnalytics = (id) => {
+            currentMachineAnalyticsId = id;
+            const m = machinesList[id]; if(!m) return;
+            document.getElementById('maName').textContent = m.name;
+            
+            const mRecords = allRecordsGlobal.filter(r => r.machineId === id && r.type === 'income').sort((a,b)=>a.timestamp - b.timestamp);
+            const stat = machinesStats[id] || { total: 0, latestStock: 0 };
+            const avg = mRecords.length > 0 ? Math.round(stat.total / mRecords.length) : 0;
+            
+            document.getElementById('maStats').innerHTML = `
+                <div class="bg-blue-50 p-3 rounded-2xl border border-blue-100"><p class="text-[9px] font-bold text-blue-500 uppercase">Всего принес</p><p class="text-sm font-extrabold text-blue-700">${stat.total.toLocaleString()} ₽</p></div>
+                <div class="bg-green-50 p-3 rounded-2xl border border-green-100"><p class="text-[9px] font-bold text-green-600 uppercase">В среднем за сбор</p><p class="text-sm font-extrabold text-green-700">${avg.toLocaleString()} ₽</p></div>
+                <div class="bg-gray-50 p-3 rounded-2xl border border-gray-200"><p class="text-[9px] font-bold text-gray-500 uppercase">Инкассаций</p><p class="text-sm font-extrabold text-gray-800">${mRecords.length}</p></div>
+                <div class="bg-purple-50 p-3 rounded-2xl border border-purple-100"><p class="text-[9px] font-bold text-purple-500 uppercase">Остаток внутри</p><p class="text-sm font-extrabold text-purple-700">${stat.latestStock} шт</p></div>
+            `;
+            
+            renderMachineChart();
+            openModal('machineAnalyticsModal');
+        };
+
+        window.renderMachineChart = () => {
+            if(!currentMachineAnalyticsId) return;
+            const mRecords = allRecordsGlobal.filter(r => r.machineId === currentMachineAnalyticsId && r.type === 'income').sort((a,b)=>a.timestamp - b.timestamp);
+            const dates = mRecords.map(r => new Date(r.timestamp).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })).slice(-15);
+            const revenues = mRecords.map(r => r.revenue).slice(-15);
+            const type = document.getElementById('maChartType').value;
+            const ctx = document.getElementById('maChart').getContext('2d');
+            if(maChartInstance) maChartInstance.destroy();
+            maChartInstance = new Chart(ctx, {
+                type: type,
+                data: { labels: dates, datasets: [{ label: 'Выручка (₽)', data: revenues, backgroundColor: '#3b82f6', borderColor: '#3b82f6', borderRadius: type === 'bar' ? 4 : 0, tension: 0.3 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: {font: {size: 9}} }, x: { ticks: {font: {size: 9}} } } }
+            });
+        };
+
         // --- БАЛАНС И РАСХОДЫ ---
         function recalculateBalance() { freeBalance = totalIncomeGlobal - totalExpensesGlobal; document.getElementById('totalBusinessAccount').textContent = freeBalance.toLocaleString() + ' ₽'; }
-        onValue(ref(db, 'expenses'), (snapshot) => { totalExpensesGlobal = 0; const data = snapshot.val() || {}; Object.values(data).forEach(exp => { totalExpensesGlobal += exp.amount; }); recalculateBalance(); updateGoalsProgress(); });
+        onValue(ref(db, 'expenses'), (snapshot) => { 
+            totalExpensesGlobal = 0; const data = snapshot.val() || {}; 
+            allExpensesGlobal = Object.values(data).map(e => ({...e, isExpense: true}));
+            allExpensesGlobal.forEach(exp => { totalExpensesGlobal += exp.amount; }); 
+            recalculateBalance(); updateGoalsProgress(); renderHistory(); renderAnalyticsCharts();
+        });
+
+        document.getElementById('unplannedExpenseForm').onsubmit = async (e) => { 
+            e.preventDefault(); 
+            const amount = parseFloat(document.getElementById('ueAmount').value); 
+            const note = document.getElementById('ueName').value; 
+            if (amount > freeBalance) return showToast(`Недостаточно средств. Баланс: ${freeBalance}`, 'error'); 
+            await push(ref(db, 'expenses'), { amount: amount, type: 'unplanned', note: note, timestamp: Date.now() }); 
+            closeModalAndReset('unplannedExpenseModal', 'unplannedExpenseForm'); showToast('Расход записан'); 
+        };
 
         // --- УПРАВЛЕНИЕ ТОЧКАМИ ---
         document.getElementById('newMachineForm').onsubmit = async (e) => {
@@ -976,12 +1242,16 @@
         onValue(ref(db, 'records'), (snapshot) => {
             const data = snapshot.val() || {}; const recordsArray = Object.values(data).sort((a,b) => b.timestamp - a.timestamp);
             allRecordsGlobal = recordsArray;
+            currentTaxBase = 0;
             totalIncomeGlobal = 0; machinesStats = {}; const weeklyStats = {}; let recentHtml = '';
             const oneWeekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
 
             recordsArray.forEach((rec, i) => {
                 const isIncome = rec.type === 'income';
-                if(isIncome) totalIncomeGlobal += rec.revenue;
+                if(isIncome) {
+                    totalIncomeGlobal += rec.revenue;
+                    if(rec.timestamp > (taxSettingsGlobal.lastPaid || 0)) currentTaxBase += rec.revenue;
+                }
                 if(i < 5) {
                     recentHtml += `<div class="card !mb-2 !p-3 flex justify-between items-center">
                         <div><p class="font-bold text-sm text-gray-900">${rec.machineName}</p><p class="text-[10px] font-bold text-gray-400 mt-0.5">${rec.date} • ${isIncome ? 'Инкасс.' : 'Ревизия'}</p></div>
@@ -1002,7 +1272,7 @@
             document.getElementById('dashRevenue').textContent = totalIncomeGlobal.toLocaleString() + ' ₽';
             document.getElementById('dashTotalStock').textContent = totalStockCount.toLocaleString();
             document.getElementById('recentActivity').innerHTML = recentHtml || '<p class="text-xs text-center text-gray-400 py-4">Пусто</p>';
-            recalculateBalance(); updateGoalsProgress(); renderPointsList();
+            recalculateBalance(); updateGoalsProgress(); renderPointsList(); renderTaxWidget();
             renderHistory();
             
             // Рейтинг недели
@@ -1019,15 +1289,43 @@
             });
             document.getElementById('weeklyRatingList').innerHTML = weeklyHtml || '<p class="text-xs text-center text-gray-400 py-4">Нет данных</p>';
 
-            // Отчеты
-            let reportsHtml = ''; let bestMachine = null; let maxRev = -1;
+            // Аналитика по точкам (Список)
+            let analyticsHtml = ''; let bestMachine = null; let maxRev = -1;
             Object.entries(machinesStats).forEach(([id, s]) => {
                 const mName = machinesList[id] ? machinesList[id].name : 'Удаленный автомат';
                 if(s.total > maxRev && s.total > 0) { maxRev = s.total; bestMachine = { name: mName }; }
-                reportsHtml += `<div class="card !p-4 !mb-2 flex justify-between items-center"><p class="font-bold text-sm text-gray-900">${mName}</p><p class="font-bold text-blue-600 text-sm">${s.total.toLocaleString()} ₽</p></div>`;
+                analyticsHtml += `<div class="bg-white p-4 rounded-2xl mb-2 flex justify-between items-center border border-gray-100 shadow-sm cursor-pointer hover:bg-gray-50 transition-colors" onclick="openMachineAnalytics('${id}')"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center font-bold text-xs">📊</div><div><p class="font-bold text-sm text-gray-900">${mName}</p><p class="text-[10px] text-gray-500">Доход: ${s.total.toLocaleString()} ₽</p></div></div><span class="text-gray-300">❯</span></div>`;
             });
-            document.getElementById('reportsList').innerHTML = reportsHtml || '<p class="text-xs text-center text-gray-400 py-4">Нет данных</p>';
+            document.getElementById('analyticsMachinesList').innerHTML = analyticsHtml || '<p class="text-xs text-center text-gray-400 py-4">Нет данных</p>';
             if(bestMachine) { document.getElementById('bestMachineCard').classList.remove('hidden'); document.getElementById('bestMachineName').textContent = bestMachine.name; }
+            renderAnalyticsCharts();
+        });
+
+        // --- ЗАДАЧИ / TO-DO ---
+        document.getElementById('taskForm').onsubmit = async (e) => {
+            e.preventDefault();
+            await push(ref(db, 'todos'), { text: document.getElementById('taskText').value, completed: false, timestamp: Date.now() });
+            closeModalAndReset('newTaskModal', 'taskForm');
+            showToast('Задача добавлена');
+        };
+        window.toggleTask = (id, currentStatus) => { update(ref(db, `todos/${id}`), { completed: !currentStatus }); };
+        window.deleteTask = (id) => { remove(ref(db, `todos/${id}`)); };
+        
+        onValue(ref(db, 'todos'), (snapshot) => {
+            todosDataGlobal = snapshot.val() || {};
+            let html = '';
+            Object.entries(todosDataGlobal).sort((a,b) => a[1].timestamp - b[1].timestamp).forEach(([id, task]) => {
+                const textClass = task.completed ? "line-through text-gray-400" : "text-gray-800 font-bold";
+                const bgClass = task.completed ? "bg-gray-50" : "bg-white";
+                html += `<div class="flex items-center justify-between p-3 rounded-xl border border-gray-100 shadow-sm mb-2 ${bgClass}">
+                    <div class="flex items-center gap-3 flex-1 cursor-pointer" onclick="toggleTask('${id}', ${task.completed})">
+                        <div class="w-5 h-5 rounded-md border-2 flex items-center justify-center ${task.completed ? 'bg-blue-500 border-blue-500' : 'border-gray-300'}">${task.completed ? '<span class="text-white text-xs">✓</span>' : ''}</div>
+                        <p class="text-sm ${textClass} flex-1 leading-tight">${task.text}</p>
+                    </div>
+                    <button onclick="deleteTask('${id}')" class="text-gray-400 hover:text-red-500 p-2 ml-2 transition-colors">🗑</button>
+                </div>`;
+            });
+            document.getElementById('todoList').innerHTML = html || '<p class="text-xs text-center text-gray-400 py-2">Нет активных задач</p>';
         });
 
         // --- ИСТОРИЯ ВСЕХ ОПЕРАЦИЙ ---
@@ -1035,11 +1333,14 @@
             const fDate = document.getElementById('historyFilterDate').value;
             const fType = document.getElementById('historyFilterType').value;
             let html = '';
+            
+            let combined = [...allRecordsGlobal, ...allExpensesGlobal].sort((a,b) => b.timestamp - a.timestamp);
+            
             const today = new Date(); today.setHours(0,0,0,0);
             const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
             const weekAgo = new Date(today); weekAgo.setDate(weekAgo.getDate() - 7);
             
-            let filtered = allRecordsGlobal.filter(rec => {
+            let filtered = combined.filter(rec => {
                 if(fType !== 'all' && rec.type !== fType) return false;
                 const rDate = new Date(rec.timestamp); rDate.setHours(0,0,0,0);
                 if(fDate === 'today' && rDate.getTime() !== today.getTime()) return false;
@@ -1050,16 +1351,58 @@
 
             filtered.forEach(rec => {
                 let typeLabel = ''; let valHtml = ''; let bgClass = 'bg-white';
+                let title = rec.machineName || rec.note || 'Операция';
                 if(rec.type === 'income') { typeLabel = '💰 Инкассация'; valHtml = `<span class="text-green-600 font-bold text-sm">+${rec.revenue} ₽</span>`; bgClass = 'bg-green-50/20'; }
                 else if(rec.type === 'refill') { typeLabel = '📦 Пополнение'; valHtml = `<span class="text-blue-600 font-bold text-sm">+${rec.added} шт</span>`; bgClass = 'bg-blue-50/20'; }
                 else if(rec.type === 'audit') { typeLabel = '⚙️ Ревизия'; valHtml = `<span class="text-gray-600 font-bold text-sm">Ост: ${rec.stock} шт</span>`; }
+                else if(rec.type === 'purchase') { typeLabel = '🛒 Закупка'; valHtml = `<span class="text-red-600 font-bold text-sm">-${rec.amount} ₽</span>`; bgClass = 'bg-red-50/20'; }
+                else if(rec.type === 'tax') { typeLabel = '🏛 Налог'; valHtml = `<span class="text-red-600 font-bold text-sm">-${rec.amount} ₽</span>`; bgClass = 'bg-red-50/20'; }
+                else if(rec.type === 'withdrawal') { typeLabel = '💸 Вывод'; valHtml = `<span class="text-gray-800 font-bold text-sm">-${rec.amount} ₽</span>`; bgClass = 'bg-gray-50'; }
+                else if(rec.type === 'unplanned') { typeLabel = '📉 Расход'; valHtml = `<span class="text-red-600 font-bold text-sm">-${rec.amount} ₽</span>`; bgClass = 'bg-red-50/20'; }
+                else if(rec.type === 'installment') { typeLabel = '💳 Платеж (Рассрочка)'; valHtml = `<span class="text-purple-600 font-bold text-sm">-${rec.amount} ₽</span>`; bgClass = 'bg-purple-50/20'; }
                 
                 html += `<div class="card !mb-2 !p-3 flex justify-between items-center ${bgClass} border border-gray-100">
-                    <div><p class="font-bold text-[13px] text-gray-900 mb-0.5">${rec.machineName}</p><p class="text-[10px] text-gray-500">${new Date(rec.timestamp).toLocaleString('ru-RU', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'})} • ${typeLabel}</p></div>
+                    <div><p class="font-bold text-[13px] text-gray-900 mb-0.5">${title}</p><p class="text-[10px] text-gray-500">${new Date(rec.timestamp).toLocaleString('ru-RU', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'})} • ${typeLabel}</p></div>
                     <div class="text-right">${valHtml}</div>
                 </div>`;
             });
             document.getElementById('fullHistoryList').innerHTML = html || '<p class="text-xs text-center text-gray-400 py-4">Операций не найдено</p>';
+        };
+
+        // --- ЭКСПОРТ В CSV ---
+        window.exportHistoryCSV = () => {
+            const fDate = document.getElementById('historyFilterDate').value;
+            const fType = document.getElementById('historyFilterType').value;
+            let combined = [...allRecordsGlobal, ...allExpensesGlobal].sort((a,b) => b.timestamp - a.timestamp);
+            
+            const today = new Date(); today.setHours(0,0,0,0);
+            const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+            const weekAgo = new Date(today); weekAgo.setDate(weekAgo.getDate() - 7);
+            
+            let filtered = combined.filter(rec => {
+                if(fType !== 'all' && rec.type !== fType) return false;
+                const rDate = new Date(rec.timestamp); rDate.setHours(0,0,0,0);
+                if(fDate === 'today' && rDate.getTime() !== today.getTime()) return false;
+                if(fDate === 'yesterday' && rDate.getTime() !== yesterday.getTime()) return false;
+                if(fDate === 'week' && rDate.getTime() < weekAgo.getTime()) return false;
+                return true;
+            });
+
+            if(filtered.length === 0) return showToast("Нет данных для экспорта", "error");
+
+            let csvContent = "\uFEFFДата;Тип;Наименование;Сумма или Кол-во\n";
+            filtered.forEach(rec => {
+                let dateStr = new Date(rec.timestamp).toLocaleString('ru-RU', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'});
+                let title = (rec.machineName || rec.note || 'Операция').replace(/;/g, ',');
+                let typeLabel = ''; let val = '';
+                if(rec.type === 'income') { typeLabel = 'Инкассация'; val = `+${rec.revenue} руб`; } else if(rec.type === 'refill') { typeLabel = 'Пополнение'; val = `+${rec.added} шт`; } else if(rec.type === 'audit') { typeLabel = 'Ревизия'; val = `Ост: ${rec.stock} шт`; } else if(rec.type === 'purchase') { typeLabel = 'Закупка'; val = `-${rec.amount} руб`; } else if(rec.type === 'tax') { typeLabel = 'Налог'; val = `-${rec.amount} руб`; } else if(rec.type === 'withdrawal') { typeLabel = 'Вывод'; val = `-${rec.amount} руб`; } else if(rec.type === 'unplanned') { typeLabel = 'Расход'; val = `-${rec.amount} руб`; } else if(rec.type === 'installment') { typeLabel = 'Рассрочка'; val = `-${rec.amount} руб`; }
+                csvContent += `${dateStr};${typeLabel};${title};${val}\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `История_операций_${new Date().toLocaleDateString('ru-RU')}.csv`;
+            link.style.display = 'none'; document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            showToast("Экспорт завершен");
         };
 
         // --- БЕКАПЫ ---
