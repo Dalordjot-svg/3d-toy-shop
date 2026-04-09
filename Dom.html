@@ -62,7 +62,10 @@
                 </div>
             </div>
             <div class="flex flex-col gap-2 items-end">
-                <button onclick="openModal('withdrawModal')" class="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition-colors border border-white/30">Вывести ↓</button>
+                <div class="flex gap-2">
+                    <button onclick="openModal('topupModal')" class="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition-colors border border-white/30">Пополнить ↑</button>
+                    <button onclick="openModal('withdrawModal')" class="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition-colors border border-white/30">Вывести ↓</button>
+                </div>
                 <button onclick="openModal('backupModal')" class="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1.5 rounded-xl transition-colors">💾 Бэкапы</button>
             </div>
         </div>
@@ -248,6 +251,7 @@
                         <option value="refill">Пополнения</option>
                         <option value="audit">Ревизии</option>
                         <option value="purchase">Закупки</option>
+                        <option value="topup">Вложения (Свои)</option>
                         <option value="tax">Налоги</option>
                         <option value="unplanned">Непредвиденные</option>
                         <option value="withdrawal">Выводы</option>
@@ -336,6 +340,27 @@
                 <div class="flex gap-3 pt-3">
                     <button type="button" onclick="closeModal('taxSettingsModal')" class="flex-1 py-3.5 bg-gray-100 text-gray-700 font-bold rounded-xl">Отмена</button>
                     <button type="submit" class="flex-[2] py-3.5 bg-orange-500 text-white font-bold rounded-xl shadow-md">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Пополнение баланса (Свои средства) -->
+    <div id="topupModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[10000] p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-[24px] p-6 w-full max-w-sm shadow-2xl transform transition-transform scale-95">
+            <h3 class="text-xl font-extrabold mb-1 text-gray-900">Пополнить баланс</h3>
+            <p class="text-xs text-gray-500 mb-5">Вложение личных средств в бизнес</p>
+            <form id="topupForm" class="space-y-4">
+                <input type="number" id="topupAmount" placeholder="Сумма (₽)" required class="w-full p-4 bg-gray-50 border border-green-200 rounded-xl outline-none font-extrabold text-xl text-green-700">
+                <select id="topupMethod" required class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none font-bold text-sm text-gray-700">
+                    <option value="Сбербанк">Сбербанк</option>
+                    <option value="Т-Банк">Т-Банк</option>
+                    <option value="Наличные">Наличные</option>
+                    <option value="Другое">Другое</option>
+                </select>
+                <div class="flex gap-3 pt-3">
+                    <button type="button" onclick="closeModalAndReset('topupModal', 'topupForm')" class="flex-1 py-3.5 bg-gray-100 text-gray-700 font-bold rounded-xl">Отмена</button>
+                    <button type="submit" class="flex-[2] py-3.5 bg-green-500 text-white font-bold rounded-xl shadow-md">Пополнить</button>
                 </div>
             </form>
         </div>
@@ -1252,6 +1277,9 @@
                     totalIncomeGlobal += rec.revenue;
                     if(rec.timestamp > (taxSettingsGlobal.lastPaid || 0)) currentTaxBase += rec.revenue;
                 }
+                if(rec.type === 'topup') {
+                    totalIncomeGlobal += rec.amount;
+                }
                 if(i < 5) {
                     recentHtml += `<div class="card !mb-2 !p-3 flex justify-between items-center">
                         <div><p class="font-bold text-sm text-gray-900">${rec.machineName}</p><p class="text-[10px] font-bold text-gray-400 mt-0.5">${rec.date} • ${isIncome ? 'Инкасс.' : 'Ревизия'}</p></div>
@@ -1360,6 +1388,7 @@
                 else if(rec.type === 'withdrawal') { typeLabel = '💸 Вывод'; valHtml = `<span class="text-gray-800 font-bold text-sm">-${rec.amount} ₽</span>`; bgClass = 'bg-gray-50'; }
                 else if(rec.type === 'unplanned') { typeLabel = '📉 Расход'; valHtml = `<span class="text-red-600 font-bold text-sm">-${rec.amount} ₽</span>`; bgClass = 'bg-red-50/20'; }
                 else if(rec.type === 'installment') { typeLabel = '💳 Платеж (Рассрочка)'; valHtml = `<span class="text-purple-600 font-bold text-sm">-${rec.amount} ₽</span>`; bgClass = 'bg-purple-50/20'; }
+                else if(rec.type === 'topup') { typeLabel = '📥 Вложение'; valHtml = `<span class="text-green-600 font-bold text-sm">+${rec.amount} ₽</span>`; bgClass = 'bg-green-50/20'; title = `Пополнение (${rec.method || 'Личные средства'})`; }
                 
                 html += `<div class="card !mb-2 !p-3 flex justify-between items-center ${bgClass} border border-gray-100">
                     <div><p class="font-bold text-[13px] text-gray-900 mb-0.5">${title}</p><p class="text-[10px] text-gray-500">${new Date(rec.timestamp).toLocaleString('ru-RU', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'})} • ${typeLabel}</p></div>
@@ -1396,6 +1425,7 @@
                 let title = (rec.machineName || rec.note || 'Операция').replace(/;/g, ',');
                 let typeLabel = ''; let val = '';
                 if(rec.type === 'income') { typeLabel = 'Инкассация'; val = `+${rec.revenue} руб`; } else if(rec.type === 'refill') { typeLabel = 'Пополнение'; val = `+${rec.added} шт`; } else if(rec.type === 'audit') { typeLabel = 'Ревизия'; val = `Ост: ${rec.stock} шт`; } else if(rec.type === 'purchase') { typeLabel = 'Закупка'; val = `-${rec.amount} руб`; } else if(rec.type === 'tax') { typeLabel = 'Налог'; val = `-${rec.amount} руб`; } else if(rec.type === 'withdrawal') { typeLabel = 'Вывод'; val = `-${rec.amount} руб`; } else if(rec.type === 'unplanned') { typeLabel = 'Расход'; val = `-${rec.amount} руб`; } else if(rec.type === 'installment') { typeLabel = 'Рассрочка'; val = `-${rec.amount} руб`; }
+                else if(rec.type === 'topup') { typeLabel = 'Вложение'; val = `+${rec.amount} руб`; title = `Пополнение (${rec.method})`; }
                 csvContent += `${dateStr};${typeLabel};${title};${val}\n`;
             });
 
@@ -1430,6 +1460,15 @@
         // --- ВЫВОД И ЗАКУПКИ ---
         document.getElementById('withdrawForm').onsubmit = async (e) => { e.preventDefault(); const amount = parseFloat(document.getElementById('withdrawAmount').value); if (amount > freeBalance) return showToast(`Недостаточно средств. Доступно: ${freeBalance}`, 'error'); await push(ref(db, 'expenses'), { amount: amount, type: 'withdrawal', note: 'Вывод средств', timestamp: Date.now() }); window.closeModalAndReset('withdrawModal', 'withdrawForm'); showToast('Средства списаны'); };
         document.getElementById('purchaseForm').onsubmit = async (e) => { e.preventDefault(); const name = document.getElementById('purchName').value; const qty = parseInt(document.getElementById('purchQty').value); const price = parseFloat(document.getElementById('purchPrice').value); if (price > freeBalance) return showToast(`Не хватает средств. Доступно: ${freeBalance}`, 'error'); await push(ref(db, 'expenses'), { amount: price, type: 'purchase', note: `Закупка: ${name}`, timestamp: Date.now() }); let existingId = null; let currentQty = 0; Object.entries(warehouseData).forEach(([id, item]) => { if(item.name.toLowerCase() === name.toLowerCase()) { existingId = id; currentQty = item.qty; } }); if (existingId) set(ref(db, `warehouse/${existingId}/qty`), currentQty + qty); else await push(ref(db, 'warehouse'), { name: name, qty: qty }); window.closeModalAndReset('purchaseModal', 'purchaseForm'); showToast(`${name} добавлено на склад`); };
+        
+        document.getElementById('topupForm').onsubmit = async (e) => { 
+            e.preventDefault(); 
+            const amount = parseFloat(document.getElementById('topupAmount').value); 
+            const method = document.getElementById('topupMethod').value;
+            await push(ref(db, 'records'), { type: 'topup', amount: amount, method: method, timestamp: Date.now(), date: new Date().toLocaleDateString('ru-RU', {day: '2-digit', month: '2-digit', year: '2-digit'}) }); 
+            window.closeModalAndReset('topupModal', 'topupForm'); 
+            showToast('Баланс успешно пополнен'); 
+        };
 
         // --- СКЛАД ---
         window.updateQty = (id, currentQty, delta) => { const newQty = currentQty + delta; if(newQty < 0) remove(ref(db, `warehouse/${id}`)); else set(ref(db, `warehouse/${id}/qty`), newQty); };
